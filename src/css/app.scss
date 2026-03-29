@@ -1,1 +1,116 @@
-// app global css in SCSS form
+// ═══ CSS Custom Properties — Light Mode (Official DESIGN_SYSTEM) ═══
+:root {
+  --color-primary:        #6B4FA0;
+  --color-primary-light:  #8B63D4;
+  --color-secondary:      #00A99D;
+  --color-secondary-light:#1FBFB5;
+
+  --bg-page:              #F4F2F9;
+  --bg-card:              #FFFFFF;
+  --bg-sidebar:           #6B4FA0;
+  --bg-sidebar-hover:     #533D7D;
+  --bg-input:             #FFFFFF;
+  --bg-header:            #FFFFFF;
+
+  --text-primary:         #212121;
+  --text-secondary:       #616161;
+  --text-hint:            #9E9E9E;
+  --text-on-brand:        #FFFFFF;
+
+  --border:               #DEDEDE;
+  --border-focus:         #6B4FA0;
+
+  --shadow-sm: 0 1px 3px rgba(107, 79, 160, 0.08);
+  --shadow-md: 0 4px 12px rgba(107, 79, 160, 0.12);
+  --shadow-lg: 0 8px 24px rgba(107, 79, 160, 0.16);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}
+
+// ═══ CSS Custom Properties — Dark Mode (Official DESIGN_SYSTEM) ═══
+body.body--dark {
+  --color-primary:        #8B63D4;
+  --color-primary-light:  #A888E3;
+  --color-secondary:      #1FBFB5;
+  --color-secondary-light:#4DD0C7;
+
+  --bg-page:              #1A1625;
+  --bg-card:              #252035;
+  --bg-sidebar:           #1A1625;
+  --bg-sidebar-hover:     #2D2545;
+  --bg-input:             #2D2545;
+  --bg-header:            #252035;
+
+  --text-primary:         #F0EDF8;
+  --text-secondary:       #B8B0D0;
+  --text-hint:            #7A7090;
+  --text-on-brand:        #FFFFFF;
+
+  --border:               #3D3560;
+  --border-focus:         #8B63D4;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+// ═══ Global base styles ═══
+body {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  font-family: 'Inter', 'Roboto', sans-serif;
+}
+
+.q-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.q-input .q-field__control {
+  background: var(--bg-input);
+  border-radius: var(--radius-sm);
+}
+
+// ═══ Compatibility with old components ═══
+:root {
+  --border-color: var(--border);
+}
+
+// ═══ THE INSTITUTIONAL GRADIENT (UNITEPC SSO) ═══
+.bg-unitepc-sso {
+  background: linear-gradient(135deg, #4f2789 0%, #00c2cb 100%) !important;
+}
+
+.sso-grid {
+  position: relative;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.1;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+// Sidebar Active Styling
+.sidebar-item-active {
+  border-left: 3px solid #00A99D !important;
+}
+
+// Common Classes
+.sigeth-page { padding: 24px; }
+.page-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}

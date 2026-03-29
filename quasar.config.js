@@ -38,6 +38,11 @@ export default defineConfig((ctx) => {
         node: 'node22',
       },
 
+      alias: {
+        'modules': fileURLToPath(new URL('./src/modules', import.meta.url)),
+        'shared': fileURLToPath(new URL('./src/shared', import.meta.url)),
+      },
+
       vueRouterMode: 'hash', // available values: 'hash', 'history'
       // vueRouterBase,
       // vueDevtools,
@@ -78,10 +83,11 @@ export default defineConfig((ctx) => {
         [
           'vite-plugin-checker',
           {
-            eslint: {
-              lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{js,mjs,cjs,vue}"',
-              useFlatConfig: true,
-            },
+            // eslint: {
+            //   lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{js,ts,vue}"',
+            //   useFlatConfig: true,
+            // },
+            vueTsc: true,
           },
           { server: false },
         ],
@@ -96,7 +102,20 @@ export default defineConfig((ctx) => {
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
     framework: {
-      config: {},
+      config: {
+        brand: {
+          primary:   '#6A37A3',
+          secondary: '#00968B',
+          accent:    '#9575CD',
+          dark:      '#0D0D0D',
+          'dark-page': '#000000',
+          positive:  '#21BA45',
+          negative:  '#FF3B30',
+          info:      '#31CCEC',
+          warning:   '#F2C037',
+        },
+        dark: 'auto',
+      },
 
       // iconSet: 'material-icons', // Quasar icon set
       // lang: 'en-US', // Quasar language pack
@@ -109,7 +128,7 @@ export default defineConfig((ctx) => {
       // directives: [],
 
       // Quasar plugins
-      plugins: [],
+      plugins: ['Notify'],
     },
 
     // animations: 'all', // --- includes all animations

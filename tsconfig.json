@@ -1,0 +1,21 @@
+{
+  "extends": "./.quasar/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "moduleResolution": "bundler",
+    "paths": {
+      "src/*": ["src/*"],
+      "app/*": ["*"],
+      "components/*": ["src/components/*"],
+      "layouts/*": ["src/layouts/*"],
+      "pages/*": ["src/pages/*"],
+      "assets/*": ["src/assets/*"],
+      "boot/*": ["src/boot/*"],
+      "stores/*": ["src/stores/*"],
+      "modules/*": ["src/modules/*"],
+      "shared/*": ["src/shared/*"],
+      "#q-app/wrappers": ["node_modules/@quasar/app-vite/types/app-wrappers.d.ts"]
+    }
+  },
+  "exclude": ["node_modules", "dist", ".quasar"]
+}
