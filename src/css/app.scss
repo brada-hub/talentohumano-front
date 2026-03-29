@@ -1,59 +1,111 @@
-// ═══ CSS Custom Properties — Light Mode (Official DESIGN_SYSTEM) ═══
+// ═══ CSS Custom Properties — Light Mode ═══
 :root {
-  --color-primary:        #6B4FA0;
-  --color-primary-light:  #8B63D4;
-  --color-secondary:      #00A99D;
-  --color-secondary-light:#1FBFB5;
+  --color-primary:        #6A37A3; // Purple UNITEPC real
+  --color-primary-light:  #9575CD;
+  --color-secondary:      #00968B; // Teal UNITEPC real
+  --color-secondary-light:#4DB6AC;
 
-  --bg-page:              #F4F2F9;
+  --bg-page:              #F4F7F9;
   --bg-card:              #FFFFFF;
-  --bg-sidebar:           #6B4FA0;
-  --bg-sidebar-hover:     #533D7D;
+  --bg-sidebar:           #7C3AED; // Sidebar Lila por defecto en light
+  --bg-sidebar-hover:     #6D28D9;
   --bg-input:             #FFFFFF;
   --bg-header:            #FFFFFF;
 
-  --text-primary:         #212121;
-  --text-secondary:       #616161;
-  --text-hint:            #9E9E9E;
+  --text-primary:         #1A1A1A;
+  --text-secondary:       #595959;
+  --text-hint:            #919191;
   --text-on-brand:        #FFFFFF;
 
-  --border:               #DEDEDE;
+  --border:               #E8ECEF;
   --border-focus:         #6B4FA0;
 
-  --shadow-sm: 0 1px 3px rgba(107, 79, 160, 0.08);
-  --shadow-md: 0 4px 12px rgba(107, 79, 160, 0.12);
-  --shadow-lg: 0 8px 24px rgba(107, 79, 160, 0.16);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
 
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
 }
 
-// ═══ CSS Custom Properties — Dark Mode (Official DESIGN_SYSTEM) ═══
+// ═══ CSS Custom Properties — Dark Mode ═══
 body.body--dark {
-  --color-primary:        #8B63D4;
-  --color-primary-light:  #A888E3;
-  --color-secondary:      #1FBFB5;
-  --color-secondary-light:#4DD0C7;
+  --color-primary:        #6A37A3; 
+  --color-primary-light:  #9575CD;
+  --color-secondary:      #00968B;
+  --color-secondary-light:#4DB6AC;
 
-  --bg-page:              #1A1625;
-  --bg-card:              #252035;
-  --bg-sidebar:           #1A1625;
-  --bg-sidebar-hover:     #2D2545;
-  --bg-input:             #2D2545;
-  --bg-header:            #252035;
+  --bg-page:              #000000;
+  --bg-card:              #111111;
+  --bg-sidebar:           #000000;
+  --bg-sidebar-hover:     #1A1A1A;
+  --bg-input:             #111111;
+  --bg-header:            #0A0A0A;
 
-  --text-primary:         #F0EDF8;
-  --text-secondary:       #B8B0D0;
-  --text-hint:            #7A7090;
+  --text-primary:         #E8E8E8;
+  --text-secondary:       #999999;
+  --text-hint:            #666666;
   --text-on-brand:        #FFFFFF;
 
-  --border:               #3D3560;
-  --border-focus:         #8B63D4;
+  --border:               #222222;
+  --border-focus:         #6A37A3;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+
+  // ═══ Quasar Dark Mode Overrides ═══
+  // Force ALL Quasar components to use our blacks
+  background-color: #000000 !important;
+  color: #E8E8E8 !important;
+}
+
+// Force Quasar dark backgrounds on ALL components
+body.body--dark {
+  .q-layout,
+  .q-page-container,
+  .q-page {
+    background-color: #000000 !important;
+  }
+
+  .q-header {
+    background-color: #0A0A0A !important;
+    border-bottom: 1px solid #222222;
+  }
+
+  .q-drawer {
+    background-color: #000000 !important;
+  }
+
+  .q-table,
+  .q-table__container,
+  .q-table--dark,
+  .q-table thead th,
+  .q-table tbody td {
+    background-color: #111111 !important;
+    border-color: #222222 !important;
+    color: #E8E8E8;
+  }
+
+  .q-card,
+  .q-item,
+  .q-list {
+    background-color: transparent !important;
+    color: #E8E8E8;
+  }
+
+  .q-separator {
+    background-color: #222222 !important;
+  }
+
+  .q-toolbar {
+    background-color: transparent !important;
+  }
+
+  .q-chip--outline {
+    border-color: #333333;
+  }
 }
 
 // ═══ Global base styles ═══
@@ -63,26 +115,140 @@ body {
   font-family: 'Inter', 'Roboto', sans-serif;
 }
 
-.q-card {
+.sigeth-page {
+  padding: 24px;
+}
+
+.page-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+
+  &__title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+
+  &__subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 20px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  }
+
+  &__icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  &__value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  &__label {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  &__trend {
+    font-size: 12px;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    &.up { color: #2E7D32; }
+    &.down { color: #C62828; }
+  }
+}
+
+.sigeth-table-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sigeth-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+}
+
+.unitepc-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
 }
 
-.q-input .q-field__control {
+.q-field--outlined .q-field__control {
   background: var(--bg-input);
   border-radius: var(--radius-sm);
 }
 
-// ═══ Compatibility with old components ═══
-:root {
-  --border-color: var(--border);
-}
-
-// ═══ THE INSTITUTIONAL GRADIENT (UNITEPC SSO) ═══
+// ═══ DEGRADADO INSTITUCIONAL UNITEPC (ÚNICO) ═══
+// El mismo degradado que usan las stat-cards del Dashboard
 .bg-unitepc-sso {
-  background: linear-gradient(135deg, #4f2789 0%, #00c2cb 100%) !important;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)) !important;
 }
 
 .sso-grid {
@@ -99,18 +265,4 @@ body {
     pointer-events: none;
     z-index: 0;
   }
-}
-
-// Sidebar Active Styling
-.sidebar-item-active {
-  border-left: 3px solid #00A99D !important;
-}
-
-// Common Classes
-.sigeth-page { padding: 24px; }
-.page-hero {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 24px;
 }

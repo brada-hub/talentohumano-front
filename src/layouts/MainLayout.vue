@@ -42,7 +42,7 @@
             <img :src="`https://ui-avatars.com/api/?name=${authStore.user?.username}&background=6B4FA0&color=fff`" />
             <q-menu auto-close class="unitepc-menu">
               <q-list style="min-width: 150px">
-                <q-item clickable @click="handleLogout" class="text-grey-7">
+                <q-item clickable @click="handleLogout" class="text-negative">
                   <q-item-section avatar>
                     <q-icon name="logout" size="sm" />
                   </q-item-section>
@@ -112,9 +112,10 @@
         <!-- User Footer Area -->
         <div class="footer-area q-pa-md">
           <q-btn
-            flat
-            color="grey-7"
-            class="full-width q-py-sm"
+            unelevated
+            color="negative"
+            text-color="white"
+            class="full-width logout-btn-rounded"
             label="Cerrar Sesión"
             icon="logout"
             no-caps
@@ -239,10 +240,12 @@ $purple-light: #A888E3;
 }
 
 .logout-btn-rounded {
-  border-radius: 20px;
-  font-weight: 700;
+  border-radius: 14px;
+  font-weight: 800;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   &:hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: #FF3B30 !important;
+    color: white !important;
   }
 }
 
