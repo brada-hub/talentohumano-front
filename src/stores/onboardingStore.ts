@@ -42,12 +42,13 @@ export const useOnboardingStore = defineStore('onboarding', {
       try {
         const resp = await api.post('/portal/verificar', payload)
         if (resp.data.success) {
+          const result = resp.data.data
           // Store session key
-          this.sessionKey = resp.data.session_key || ''
+          this.sessionKey = result.session_key || ''
           LocalStorage.set('onboarding_session_key', this.sessionKey)
           
           // Preload persona data if exists
-          const pre = resp.data.datos_precargados
+          const pre = result.datos_precargados
           if (pre) {
             // ═══ Transformar datos de Eloquent a formato del formulario ═══
             
@@ -164,8 +165,9 @@ export const useOnboardingStore = defineStore('onboarding', {
             this.persona.fecha_nacimiento = payload.fecha_nacimiento
           }
           this.saveToLocal()
+          return result
         }
-        return resp.data
+        return { success: false }
       } finally {
         this.loading = false
       }

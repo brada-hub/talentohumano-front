@@ -1,133 +1,121 @@
 <template>
   <q-layout view="lHh Lpr lFf" class="bg-page">
-    <!-- 1. HEADER -->
-    <q-header flat bordered class="header-premium" :class="isDark ? 'text-white' : 'text-grey-9'">
-      <q-toolbar class="q-py-sm">
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="toggleLeftDrawer"
-          class="q-mr-sm"
-        />
+    
+    <!-- 1. HEADER (ESTILO SISPO: PÚRPURA UNITEPC) -->
+    <q-header flat class="bg-unitepc text-white">
+      <q-toolbar class="q-py-sm q-px-md">
+        <q-btn flat dense round icon="menu" @click="toggleLeftDrawer" class="q-mr-md" />
 
-        <div class="header-title flex items-center">
-          <q-icon name="dashboard" color="primary" size="24px" class="q-mr-sm" />
-          <div class="text-weight-bolder text-h6 text-uppercase" style="letter-spacing: 1px">
+        <div class="column">
+          <div class="text-weight-bolder text-h6 text-uppercase" style="line-height: 1.1">
             {{ pageTitle }}
+          </div>
+          <div class="text-caption opacity-80 letter-spacing-1">
+            Universidad Técnica Privada Cosmos
           </div>
         </div>
 
         <q-space />
-
-        <div class="q-gutter-sm flex items-center">
-          <q-btn
-            flat
-            round
-            :icon="isDark ? 'light_mode' : 'dark_mode'"
-            :color="isDark ? 'amber' : 'grey-8'"
-            @click="toggleDarkMode"
-          />
-
-          <q-separator vertical inset class="q-mx-sm" />
-
-          <div class="column no-wrap items-end q-mr-sm hide-on-mobile">
-            <span class="text-caption text-weight-bold text-primary">{{ authStore.user?.username }}</span>
-            <span class="text-caption text-grey-7" style="font-size: 10px">{{ activeRole }}</span>
-          </div>
-
-          <q-avatar size="36px" class="avatar-header cursor-pointer">
-            <img :src="`https://ui-avatars.com/api/?name=${authStore.user?.username}&background=6B4FA0&color=fff`" />
-            <q-menu auto-close class="unitepc-menu">
-              <q-list style="min-width: 150px">
-                <q-item clickable @click="handleLogout" class="text-negative">
-                  <q-item-section avatar>
-                    <q-icon name="logout" size="sm" />
-                  </q-item-section>
-                  <q-item-section>Cerrar Sesión</q-item-section>
-                </q-item>
-              </q-list>
-            </q-menu>
-          </q-avatar>
-        </div>
+        
+        <q-btn flat round icon="public" />
       </q-toolbar>
     </q-header>
 
-    <!-- 2. SIDEBAR (modern black or clean white) -->
+    <!-- 2. SIDEBAR (CLON IDENTICO AL SISPO) -->
     <q-drawer
       v-model="leftDrawerOpen"
       show-if-above
-      :width="280"
-      :class="isDark ? 'bg-sidebar-dark text-white' : 'bg-sidebar-light text-grey-9'"
-      class="sidebar-premium"
+      :width="270"
+      class="sidebar-sispo"
       side="left"
     >
       <div class="column full-height no-wrap">
-        <!-- Brand Area -->
-        <div class="brand-area q-pa-lg text-center">
-          <div class="brand-logo flex flex-center q-mb-md">
-            <q-img src="favicon.ico" width="180px" fit="contain" />
-          </div>
-          <div class="brand-tagline" :class="isDark ? 'text-grey-5' : 'text-grey-7'">
-             SISTEMA DE TALENTO HUMANO
+        
+        <!-- Brand Area / UNITEPC LOGO -->
+        <div class="q-pa-lg text-center">
+          <q-img src="favicon.ico" width="200px" fit="contain" class="q-mb-sm" />
+          <div class="text-grey-6 text-weight-bold" style="font-size: 11px; line-height: 1.3;">
+            Sistema de Gestión de Talento Humano
           </div>
         </div>
 
-        <q-separator :dark="isDark" class="q-mx-lg opacity-20" />
+        <!-- Portal Public Button -->
+        <div class="q-px-md q-mb-md">
+           <q-btn 
+            flat 
+            no-caps 
+            class="full-width bg-grey-1 text-grey-9 rounded-8 q-py-sm" 
+            icon="language" 
+            label="Ver Portal Público" 
+            style="font-size: 13px;"
+           />
+        </div>
 
-        <!-- Navigation -->
-        <q-scroll-area class="col q-mt-md">
-          <q-list padding class="q-px-md">
-          <q-item
-            clickable
-            v-ripple
-            to="/"
-            exact
-            class="nav-item q-mb-sm"
-            :active-class="isDark ? 'nav-item-active-dark' : 'nav-item-active-light'"
-          >
-            <q-item-section avatar>
-              <q-icon name="dashboard" size="24px" />
-            </q-item-section>
-            <q-item-section class="text-weight-bold">Dashboard</q-item-section>
-          </q-item>
+        <!-- Section Label -->
+        <div class="q-px-md q-mt-lg">
+          <div class="text-grey-5 text-weight-bolder q-mb-sm letter-spacing-1" style="font-size: 9px;">
+            MENÚ PRINCIPAL (SISTEMA DE POSTULACIÓN)
+          </div>
+        </div>
 
-          <q-item
-            clickable
-            v-ripple
-            to="/personal"
-            class="nav-item q-mb-sm"
-            :active-class="isDark ? 'nav-item-active-dark' : 'nav-item-active-light'"
-          >
-            <q-item-section avatar>
-              <q-icon name="person" size="24px" />
-            </q-item-section>
-            <q-item-section class="text-weight-bold">Personal</q-item-section>
-          </q-item>
+        <!-- Navigation Menu -->
+        <q-scroll-area class="col q-px-md">
+          <q-list class="q-gutter-y-xs">
+            <template v-for="item in navItems" :key="item.path">
+              <q-item
+                v-if="!item.requiresAdmin || isAdmin"
+                clickable
+                v-ripple
+                :to="item.path"
+                exact
+                class="nav-item-sispo rounded-8"
+                active-class="nav-item-active-teal"
+              >
+                <q-item-section avatar>
+                  <q-icon :name="item.icon" size="20px" class="nav-icon" />
+                </q-item-section>
+                <q-item-section>
+                  <div class="text-weight-bold" style="font-size: 13px;">
+                    {{ item.label }}
+                  </div>
+                </q-item-section>
+              </q-item>
+            </template>
           </q-list>
         </q-scroll-area>
 
-        <!-- User Footer Area -->
-        <div class="footer-area q-pa-md">
-          <q-btn
-            unelevated
-            color="negative"
-            text-color="white"
-            class="full-width logout-btn-rounded"
-            label="Cerrar Sesión"
-            icon="logout"
-            no-caps
-            @click="handleLogout"
-          />
+        <!-- Sidebar Footer / Profile Info -->
+        <div class="q-pa-md column q-gutter-y-sm">
+           <div class="row no-wrap items-center q-pa-sm bg-grey-1 rounded-8">
+              <q-avatar size="34px" color="indigo-1" text-color="indigo-9" class="text-weight-bold shadow-1">
+                 {{ authStore.user?.username.charAt(0).toUpperCase() }}
+              </q-avatar>
+              <div class="column q-ml-md overflow-hidden">
+                 <span class="text-caption text-weight-bolder text-grey-9 text-uppercase ellipsis" style="font-size: 11px;">
+                    {{ authStore.user?.username }}
+                 </span>
+                 <span class="text-grey-6 text-uppercase text-weight-bolder" style="font-size: 8px;">
+                    {{ activeRole }}
+                 </span>
+              </div>
+           </div>
+
+           <q-btn
+             flat
+             no-caps
+             class="full-width bg-purple-soft text-primary rounded-8 text-weight-bold"
+             icon="home"
+             label="Volver al Portal"
+             style="font-size: 13px;"
+             @click="handleLogout"
+           />
         </div>
       </div>
     </q-drawer>
 
-    <!-- 3. PAGE CONTENT -->
-    <q-page-container>
-      <router-view class="q-pa-md" />
+    <!-- 3. PAGE CONTENT CONTAINER -->
+    <q-page-container class="bg-page shadow-inner">
+      <router-view />
     </q-page-container>
   </q-layout>
 </template>
@@ -136,12 +124,10 @@
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from 'src/modules/auth/stores/useAuthStore'
-import { useDarkMode } from 'src/shared/composables/useDarkMode'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
-const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
 const leftDrawerOpen = ref(false)
 
@@ -150,12 +136,12 @@ const toggleLeftDrawer = () => {
 }
 
 const navItems = [
-  { label: 'Dashboard', icon: 'home', path: '/', requiresAdmin: false },
-  { label: 'Personal', icon: 'person', path: '/personal', requiresAdmin: false },
-  { label: 'Talento Humano', icon: 'work', path: '/talento-humano', requiresAdmin: false },
-  { label: 'Académico', icon: 'school', path: '/academico', requiresAdmin: false },
-  { label: 'Beneficios', icon: 'favorite', path: '/beneficios', requiresAdmin: false },
-  { label: 'Configuración', icon: 'settings', path: '/config', requiresAdmin: true },
+  { label: 'Dashboard', icon: 'grid_view', path: '/', requiresAdmin: false },
+  { label: 'Mi Hoja de Vida', icon: 'badge', path: '/personal', requiresAdmin: false },
+  { label: 'Expedientes', icon: 'folder_shared', path: '/personal/list', requiresAdmin: false },
+  { label: 'Convocatorias', icon: 'campaign', path: '/talento-humano', requiresAdmin: false },
+  { label: 'Postulaciones', icon: 'group_add', path: '/academico', requiresAdmin: false },
+  { label: 'Evaluación Méritos', icon: 'fact_check', path: '/beneficios', requiresAdmin: false },
 ]
 
 const pageTitle = computed(() => {
@@ -168,96 +154,62 @@ const activeRole = computed(() => {
   return roles.length > 0 ? roles[0].nombres : 'Usuario'
 })
 
+const isAdmin = computed(() => {
+  return activeRole.value === 'ADMIN' || activeRole.value === 'SISTEMAS' || activeRole.value === 'ADMINISTRADOR'
+})
+
 const handleLogout = async () => {
   await authStore.logout()
   router.push('/login')
 }
 </script>
 
-<style lang="scss" scoped>
-// ══ Colors from DESIGN_SYSTEM.md ══
-$sidebar-color: #6B4FA0;
-$sidebar-active: #533D7D;
-$teal-accent: #00A99D;
-$purple-light: #A888E3;
+<style lang="scss">
+// ══ COLOR VARIABLES SISPO ══
+$sispo-primary: #6A37A3; // Púrpura UNITEPC
+$sispo-accent: #00A99D;  // Teal / Turquesa de SISPO
+$sispo-bg: #fdf2ff;      // Fondo lila suave para botones secundarios
+$sispo-grey: #f4f6f8;    // Gris suave para cards sidebar
 
-.header-premium {
-  background-color: var(--bg-header) !important;
+.bg-unitepc { background: $sispo-primary !important; }
+.bg-grey-1 { background: $sispo-grey !important; }
+.bg-purple-soft { background: $sispo-bg !important; }
+.text-primary { color: $sispo-primary !important; }
+.rounded-8 { border-radius: 8px !important; }
+
+// Header spacing
+.letter-spacing-1 { letter-spacing: 1px; }
+
+// Sidebar specific
+.sidebar-sispo {
+  background: white !important;
+  border-right: 1px solid #e2e8f0 !important;
 }
 
-.bg-sidebar-dark {
-  background-color: #000000 !important;
-  border-right: 1px solid #222222;
-}
-
-.bg-sidebar-light {
-  background-color: #FFFFFF !important;
-  border-right: 1px solid #E2E8F0;
-}
-
-.brand-area {
-  padding: 40px 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.brand-logo {
-  min-height: 80px;
-}
-
-.brand-tagline {
-  font-size: 10px;
-  margin-top: 5px;
-  letter-spacing: 2px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.nav-item {
-  border-radius: 12px;
-  transition: all 0.2s ease;
-  margin-top: 4px;
-  color: var(--text-secondary);
+.nav-item-sispo {
+  color: #64748b;
+  min-height: 52px;
+  margin-bottom: 2px;
+  
+  .nav-icon { color: #94a3b8; }
 
   &:hover {
-    background: rgba(106, 55, 163, 0.08); // Usa el lila oficial muy tenue
-    color: var(--color-primary);
+    background: #f8fafc;
+    color: #1e293b;
+    .nav-icon { color: $sispo-accent; }
   }
 }
 
-.nav-item-active-dark {
-  background: #00968B !important; // Teal oficial
-  color: #FFFFFF !important;
-  box-shadow: 0 4px 15px rgba(0, 150, 139, 0.4);
+.nav-item-active-teal {
+  background: $sispo-accent !important;
+  color: white !important;
+  box-shadow: 0 4px 10px rgba(0, 169, 157, 0.4);
+  
+  .nav-icon { color: white !important; }
 }
 
-.nav-item-active-light {
-  background: var(--color-primary) !important;
-  color: #FFFFFF !important;
-  box-shadow: 0 4px 15px rgba(106, 55, 163, 0.3);
-}
-
-.logout-btn-rounded {
-  border-radius: 14px;
-  font-weight: 800;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  &:hover {
-    background: #FF3B30 !important;
-    color: white !important;
-  }
-}
-
-.avatar-header {
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-body.body--dark .avatar-header {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.opacity-20 { opacity: 0.2; }
+.bg-page { background: #f8fafc; }
+.shadow-inner { box-shadow: inset 0 2px 10px rgba(0,0,0,0.02); }
 
 @media (max-width: 600px) {
   .hide-on-mobile { display: none; }

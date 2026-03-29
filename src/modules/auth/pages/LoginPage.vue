@@ -21,6 +21,7 @@
             color="primary"
             label="Nombre de usuario"
             stack-label
+            autocomplete="username"
             :rules="[val => !!val || 'El usuario es requerido']"
           >
             <template v-slot:prepend>
@@ -34,6 +35,7 @@
             color="primary"
             label="Contraseña"
             stack-label
+            autocomplete="current-password"
             :type="showPassword ? 'text' : 'password'"
             :rules="[val => !!val || 'La contraseña es requerida']"
           >
@@ -57,7 +59,8 @@
               label="Acceder al Sistema"
               type="submit"
               color="primary"
-              class="full-width q-py-sm"
+              class="full-width q-py-md text-weight-bold"
+              rounded
               unelevated
               :loading="authStore.loading"
             />

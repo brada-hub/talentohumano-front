@@ -194,19 +194,25 @@ const onSubmit = async () => {
   } catch (err: any) {
     const status = err.response?.status
     const msg = err.response?.data?.message || ''
-    
-    if (status === 401) {
-      // Fecha de nacimiento no coincide
-      resultado.value = 'error'
-      errorMsg.value = msg || 'La fecha de nacimiento no coincide con el CI proporcionado.'
-      Notify.create({ color: 'negative', message: errorMsg.value, icon: 'error' })
-    } else {
-      // Error de servidor o conexión — permitir continuar como nuevo
+
+    if (status === 404) {
+      // Persona no encontrada en el sistema — es un nuevo usuario
       onboardingStore.persona.ci = form.value.ci
       onboardingStore.persona.fecha_nacimiento = form.value.fecha_nacimiento
       onboardingStore.saveToLocal()
       resultado.value = 'nuevo'
-      Notify.create({ color: 'info', message: 'No se pudo verificar. Puedes registrarte como nuevo.', icon: 'info' })
+    } else if (status === 401) {
+      // Fecha de nacimiento no coincide con el CI
+      resultado.value = 'error'
+      errorMsg.value = msg || 'La fecha de nacimiento no coincide con el CI proporcionado.'
+      Notify.create({ color: 'negative', message: errorMsg.value, icon: 'error' })
+    } else {
+      // Error de servidor o conexión — permitir continuar de todas formas
+      onboardingStore.persona.ci = form.value.ci
+      onboardingStore.persona.fecha_nacimiento = form.value.fecha_nacimiento
+      onboardingStore.saveToLocal()
+      resultado.value = 'nuevo'
+      Notify.create({ color: 'warning', message: 'Sin conexión al servidor. Puedes registrarte de todas formas.', icon: 'wifi_off' })
     }
   } finally {
     loading.value = false

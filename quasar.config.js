@@ -114,7 +114,7 @@ export default defineConfig((ctx) => {
           info:      '#31CCEC',
           warning:   '#F2C037',
         },
-        dark: 'auto',
+        dark: false, // 🔒 Permanently disabled — light-only design
       },
 
       // iconSet: 'material-icons', // Quasar icon set

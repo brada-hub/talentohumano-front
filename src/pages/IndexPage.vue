@@ -10,7 +10,7 @@
         </div>
       </div>
       <div class="page-hero__actions">
-        <q-btn unelevated color="primary" icon="refresh" label="Sincronizar" @click="loadData" :loading="loading" class="btn-glow" />
+        <q-btn unelevated rounded color="primary" icon="refresh" label="Sincronizar" @click="loadData" :loading="loading" class="btn-glow" />
       </div>
     </div>
 
@@ -112,7 +112,7 @@
           <div class="table-toolbar row items-center q-pa-md">
             <div class="text-subtitle1 text-weight-bold">Incorporaciones Recientes</div>
             <q-space />
-            <q-btn flat dense color="primary" label="Ver listado completo" to="/personal" no-caps icon-right="chevron_right" />
+            <q-btn flat rounded dense color="primary" label="Ver listado completo" to="/personal" no-caps icon-right="chevron_right" />
           </div>
           <q-table
             :rows="stats?.recent || []"

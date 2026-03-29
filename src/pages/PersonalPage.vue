@@ -29,7 +29,7 @@
           class="text-weight-bold"
         />
         <div class="q-mx-sm">|</div>
-        <q-btn unelevated color="primary" icon="person_add" label="Nuevo Registro" class="q-px-lg btn-glow" @click="showDialog = true" />
+        <q-btn unelevated rounded color="primary" icon="person_add" label="Nuevo Registro" class="q-px-lg btn-glow" @click="showDialog = true" />
       </div>
     </div>
 
@@ -40,6 +40,7 @@
           v-model="filter"
           placeholder="Buscar por nombre o CI..."
           outlined
+          rounded
           dense
           class="col-grow q-mr-md search-input"
         >
@@ -131,7 +132,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { usePersonalStore } from 'stores/personalStore'
 import { QTableColumn } from 'quasar'
 import { Loading, useQuasar, copyToClipboard } from 'quasar'
@@ -139,7 +139,6 @@ import RegistroEmpleadoDialog from 'components/RegistroEmpleadoDialog.vue'
 import { api } from 'boot/axios'
 
 const $q = useQuasar()
-const router = useRouter()
 const personalStore = usePersonalStore()
 const filter = ref('')
 const showDialog = ref(false)
@@ -162,7 +161,7 @@ const loadPortalStatus = async () => {
   try {
     const { data } = await api.get('/onboarding/status')
     onboardingEnabled.value = data.enabled
-  } catch (e) { console.error('Error cargando estado portal') }
+  } catch { console.error('Error cargando estado portal') }
 }
 
 const togglePortal = async (val: boolean) => {
@@ -173,7 +172,7 @@ const togglePortal = async (val: boolean) => {
       message: val ? '¡Portal de Onboarding Habilitado!' : '¡Portal de Onboarding DESACTIVADO!',
       position: 'top'
     })
-  } catch (e) {
+  } catch {
     onboardingEnabled.value = !val // revertir si falla
     $q.notify({ type: 'negative', message: 'No se pudo cambiar el estado del portal.' })
   }
@@ -200,7 +199,7 @@ const generarOnboarding = async (idPersona: string) => {
       caption: 'Ya puedes enviárselo al funcionario.',
       icon: 'content_paste'
     })
-  } catch (e) {
+  } catch {
     $q.notify({ type: 'negative', message: 'No se pudo generar el token.' })
   } finally {
     Loading.hide()

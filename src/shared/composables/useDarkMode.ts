@@ -1,20 +1,20 @@
 import { Dark } from 'quasar';
 import { computed } from 'vue';
 
+// Light mode is permanently forced per design decision.
+// Dark mode toggle has been removed from the application.
 export function useDarkMode() {
-  const isDark = computed(() => Dark.isActive);
+  // Always false - we only use the white theme
+  const isDark = computed(() => false);
 
   function toggle() {
-    Dark.toggle();
-    localStorage.setItem('darkMode', Dark.isActive ? 'true' : 'false');
+    // No-op: dark mode permanently disabled
   }
 
   function init() {
-    const saved = localStorage.getItem('darkMode');
-    if (saved !== null) {
-      Dark.set(saved === 'true');
-    }
-    // else: uses OS preference (dark: 'auto' in quasar.config)
+    // Force Quasar into light mode, overriding any OS setting or stored preference
+    Dark.set(false);
+    localStorage.removeItem('darkMode');
   }
 
   return { isDark, toggle, init };
