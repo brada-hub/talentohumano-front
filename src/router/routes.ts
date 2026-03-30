@@ -6,8 +6,10 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
-      { path: '/personal', component: () => import('pages/PersonalPage.vue') },
-      { path: '/personal/:id', component: () => import('pages/PersonalDetailPage.vue'), name: 'personal-detail' },
+      { path: 'perfil', component: () => import('modules/auth/pages/PerfilPage.vue') },
+      { path: 'geo', component: () => import('modules/geo/pages/GeoCatalogosPage.vue') },
+      { path: 'personal', component: () => import('pages/PersonalPage.vue') },
+      { path: 'personal/:id', component: () => import('pages/PersonalDetailPage.vue'), name: 'personal-detail' },
     ],
   },
   {

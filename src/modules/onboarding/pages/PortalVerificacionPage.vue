@@ -187,7 +187,13 @@ const onSubmit = async () => {
     const resp = await onboardingStore.verificarIdentidad(form.value)
     if (resp.success && resp.datos_precargados) {
       resultado.value = 'encontrado'
-      Notify.create({ color: 'positive', message: `Expediente encontrado para CI ${form.value.ci}`, icon: 'check_circle' })
+      Notify.create({ 
+        color: 'positive', 
+        message: `Expediente encontrado para CI ${form.value.ci}. Redirigiendo...`, 
+        icon: 'check_circle',
+        timeout: 1500 
+      })
+      setTimeout(() => router.push('/portal/registro'), 1500)
     } else if (resp.success && !resp.datos_precargados) {
       resultado.value = 'nuevo'
     }
@@ -233,7 +239,7 @@ const goToRegistroMinimal = () => {
 const resetForm = () => {
   resultado.value = null
   form.value = { ci: '', fecha_nacimiento: '' }
-  onboardingStore.clearStore()
+  onboardingStore.resetData()
 }
 </script>
 

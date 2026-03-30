@@ -31,7 +31,10 @@
               <q-item-section avatar><q-avatar color="green-1" text-color="green-8" icon="model_training" /></q-item-section>
               <q-item-section>
                 <q-item-label class="text-weight-bolder text-green-9">{{ item.nombre_curso }}</q-item-label>
-                <q-item-label caption class="text-weight-medium">{{ item.institucion }} ({{ item.carga_horaria }} Hrs)</q-item-label>
+                <q-item-label caption class="text-weight-medium">
+                  {{ item.institucion }} ({{ item.carga_horaria }} Hrs)
+                  <span class="text-grey-6">({{ deptoOptions.find(d => d.value === item.id_depto)?.label || 'N/R' }})</span>
+                </q-item-label>
               </q-item-section>
               <q-item-section side>
                 <div class="row q-gutter-xs">
@@ -69,7 +72,10 @@
               <q-item-section avatar><q-avatar color="purple-1" text-color="purple-8" icon="menu_book" /></q-item-section>
               <q-item-section>
                 <q-item-label class="text-weight-bolder text-purple-9">{{ item.titulo }}</q-item-label>
-                <q-item-label caption class="text-weight-medium">{{ item.tipo }} ({{ item.editorial }})</q-item-label>
+                <q-item-label caption class="text-weight-medium">
+                  {{ item.tipo }} ({{ item.editorial }})
+                  <span class="text-grey-6">({{ deptoOptions.find(d => d.value === item.id_depto)?.label || 'N/R' }})</span>
+                </q-item-label>
               </q-item-section>
               <q-item-section side>
                 <div class="row q-gutter-xs">

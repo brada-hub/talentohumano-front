@@ -33,7 +33,10 @@
               </q-item-section>
               <q-item-section>
                 <q-item-label class="text-weight-bolder text-teal-9">{{ item.cargo }}</q-item-label>
-                <q-item-label caption class="text-weight-medium">{{ item.empresa }}</q-item-label>
+                <q-item-label caption class="text-weight-medium">
+                  {{ item.empresa }} 
+                  <span class="text-grey-6">({{ deptoOptions.find(d => d.value === item.id_depto)?.label || 'N/R' }})</span>
+                </q-item-label>
               </q-item-section>
               <q-item-section side>
                 <div class="row q-gutter-xs">
@@ -73,7 +76,11 @@
               </q-item-section>
               <q-item-section>
                 <q-item-label class="text-weight-bolder text-blue-9">{{ item.carrera }}</q-item-label>
-                <q-item-label caption class="text-weight-medium">{{ item.institucion }} (Gestión: {{ item.gestion_periodo }})</q-item-label>
+                <q-item-label caption class="text-weight-medium">
+                  {{ item.institucion }}
+                   <span class="text-grey-6">({{ deptoOptions.find(d => d.value === item.id_depto)?.label || 'N/R' }})</span>
+                   (Gestión: {{ item.gestion_periodo }})
+                </q-item-label>
               </q-item-section>
               <q-item-section side>
                 <div class="row q-gutter-xs">
@@ -132,8 +139,49 @@
           <div class="col-12 col-md-6"><q-input v-model="form.carrera" @update:model-value="forceUpper" input-class="text-uppercase" label="Carrera o Facultad *" outlined dense /></div>
           <div class="col-12 col-md-6"><q-select v-model="form.id_pais" :options="paisOptions" emit-value map-options label="País *" outlined dense @update:model-value="onPaisFormChange" /></div>
           <div class="col-12 col-md-6"><q-select v-model="form.id_depto" :options="deptoOptions" emit-value map-options label="Depto/Estado *" outlined dense /></div>
-          <div class="col-12"><q-input v-model="form.asignaturas" @update:model-value="forceUpper" input-class="text-uppercase" label="Asignaturas Dictadas *" outlined dense type="textarea" rows="2" /></div>
-          <div class="col-12 col-md-6"><q-input v-model="form.gestion_periodo" @update:model-value="forceUpper" input-class="text-uppercase" label="Gestión o Periodo (EJ: 2021-I, 2022) *" outlined dense /></div>
+          <div class="col-12"><div class="text-subtitle2 text-grey-6 q-mb-xs">Gestiones / Periodos Dictados *</div></div>
+          <div class="col-12 col-md-4">
+            <q-select v-model="quickGestion.semestre" :options="['I', 'II', 'Verano', 'Invierno']" label="Periodo" outlined dense />
+          </div>
+          <div class="col-12 col-md-5">
+            <q-input v-model="quickGestion.anio" label="Año (EJ: 2025)" outlined dense mask="####" />
+          </div>
+          <div class="col-12 col-md-3">
+             <q-btn unelevated color="blue-8" icon="add" label="Añadir" class="full-width" @click="addGestionToList" style="height: 40px" />
+          </div>
+          
+          <div class="col-12">
+            <div class="bg-grey-1 q-pa-sm border-light rounded-12 flex q-gutter-xs">
+              <div v-if="form.gestion_list?.length === 0" class="text-caption text-grey-5 q-pa-xs">Sin periodos añadidos... (Añada al menos uno)</div>
+              <q-chip 
+                v-for="(g, idx) in form.gestion_list" 
+                :key="idx" 
+                removable 
+                @remove="form.gestion_list.splice(idx, 1)" 
+                color="blue-1" 
+                text-color="blue-9" 
+                class="text-weight-bold"
+              >
+                {{ g }}
+              </q-chip>
+            </div>
+          </div>
+
+          <div class="col-12"><div class="text-subtitle2 text-grey-6 q-mb-xs q-mt-sm">Asignaturas Dictadas</div></div>
+          <div class="col-12">
+            <q-select 
+              v-model="form.asignaturas_list" 
+              use-input 
+              use-chips 
+              multiple 
+              new-value-mode="add-unique" 
+              input-class="text-uppercase"
+              label="Asignaturas Dictadas (Escriba y presione Enter) *" 
+              outlined 
+              dense 
+              hint="Ej: PROGRAMACION I, ESTRUCTURA DE DATOS"
+            />
+          </div>
           <div class="col-12">
             <q-file v-model="form.archivo_respaldo" label="Certificado de Trabajo Docente (PDF/JPG) *" outlined dense accept=".pdf,image/*">
               <template v-slot:prepend><q-icon name="attach_file" /></template>
@@ -155,8 +203,21 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useOnboardingStore } from 'src/stores/onboardingStore'
+import { Notify } from 'quasar'
 
 const onboardingStore = useOnboardingStore()
+
+const quickGestion = ref({ semestre: 'I', anio: new Date().getFullYear() })
+const addGestionToList = () => {
+  if (!quickGestion.value.anio) {
+    Notify.create({ color: 'warning', message: 'Debe ingresar un año válido' })
+    return
+  }
+  const str = `${quickGestion.value.semestre}-${quickGestion.value.anio}`
+  if (!form.value.gestion_list) form.value.gestion_list = []
+  if (form.value.gestion_list.includes(str)) return
+  form.value.gestion_list.push(str)
+}
 
 // Computados para separar las listas
 const profesionalList = computed(() => onboardingStore.experiencia.filter(i => i.tipo_registro === 'profesional'))
@@ -186,13 +247,18 @@ const isFormValid = computed(() => {
     return !!(form.value.cargo && form.value.empresa && form.value.id_depto && form.value.fecha_inicio && form.value.archivo_respaldo)
   }
   if (form.value.tipo_registro === 'docente') {
-    return !!(form.value.institucion && form.value.carrera && form.value.id_depto && form.value.asignaturas && form.value.gestion_periodo && form.value.archivo_respaldo)
+    return !!(form.value.institucion && form.value.carrera && form.value.id_depto && (form.value.asignaturas_list?.length > 0) && (form.value.gestion_list?.length > 0) && form.value.archivo_respaldo)
   }
   return false
 })
 
 const resetForm = () => {
-  form.value = { tipo_registro: '', cargo: '', empresa: '', institucion: '', carrera: '', asignaturas: '', gestion_periodo: '', id_depto: null, fecha_inicio: '', fecha_fin: '', archivo_respaldo: null }
+  form.value = { 
+    tipo_registro: '', cargo: '', empresa: '', institucion: '', carrera: '', 
+    asignaturas: '', asignaturas_list: [],
+    gestion_list: [], gestion_periodo: '', id_depto: null, fecha_inicio: '', fecha_fin: '', archivo_respaldo: null 
+  }
+  quickGestion.value = { semestre: 'I', anio: new Date().getFullYear() }
   isEditing.value = false
   originalItem.value = null
 }
@@ -202,8 +268,6 @@ const forceUpper = () => {
   if (form.value.empresa) form.value.empresa = form.value.empresa.toUpperCase()
   if (form.value.institucion) form.value.institucion = form.value.institucion.toUpperCase()
   if (form.value.carrera) form.value.carrera = form.value.carrera.toUpperCase()
-  if (form.value.asignaturas) form.value.asignaturas = form.value.asignaturas.toUpperCase()
-  if (form.value.gestion_periodo) form.value.gestion_periodo = form.value.gestion_periodo.toUpperCase()
 }
 
 const openProfesional = () => {
@@ -230,6 +294,11 @@ const editProfesional = (item: any) => {
 const editDocencia = (item: any) => {
   resetForm()
   form.value = { ...item }
+  // Re-mapear asignaturas a lista de chips
+  form.value.asignaturas_list = item.asignaturas ? item.asignaturas.split(', ') : []
+  // Re-mapear gestion_periodo a lista de chips
+  form.value.gestion_list = item.gestion_periodo ? item.gestion_periodo.split(', ') : []
+
   if (!(form.value.archivo_respaldo instanceof File)) form.value.archivo_respaldo = null
   isEditing.value = true
   originalItem.value = item
@@ -238,6 +307,13 @@ const editDocencia = (item: any) => {
 
 const saveItem = () => {
   forceUpper()
+  
+  if (form.value.tipo_registro === 'docente') {
+    // Unificar asignaturas y gestiones antes de guardar
+    form.value.asignaturas = (form.value.asignaturas_list || []).map((s: string) => s.toUpperCase()).join(', ')
+    form.value.gestion_periodo = (form.value.gestion_list || []).join(', ')
+  }
+
   if (isEditing.value) {
     const index = onboardingStore.experiencia.findIndex(i => i === originalItem.value)
     if (index !== -1) onboardingStore.experiencia[index] = { ...form.value }

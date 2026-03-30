@@ -124,6 +124,66 @@ export const usePersonalStore = defineStore('personal', {
         }
         return null
       }
+    },
+
+    // ─── Legajo Digital (Movido aquí por organización) ───────────────────────────
+    async getLegajo(idEmpleado: number) {
+      try {
+        const response = await api.get(`/v1/talento-humano/empleados/${idEmpleado}/legajos`)
+        return response.data.data
+      } catch (err) {
+        console.error('Error fetching legajo', err)
+        return []
+      }
+    },
+
+    async uploadDocument(idEmpleado: number, file: File, categoria: string) {
+      const { success, error } = useNotify()
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('categoria', categoria)
+
+      try {
+        const response = await api.post(
+          `/v1/talento-humano/empleados/${idEmpleado}/legajos`,
+          formData,
+          { headers: { 'Content-Type': 'multipart/form-data' } }
+        )
+        if (response.data.success) {
+          success('Documento subido correctamente')
+          return response.data.data
+        }
+      } catch {
+        error('No se pudo subir el archivo')
+        return null
+      }
+    },
+
+    async deleteDocument(idDocumento: number) {
+      const { success, error } = useNotify()
+      try {
+        await api.delete(`/v1/talento-humano/legajos/${idDocumento}`)
+        success('Documento eliminado')
+        return true
+      } catch {
+        error('No se pudo eliminar el documento')
+        return false
+      }
+    },
+
+    async updateEmployee(id: number, data: any) {
+      const { success, error } = useNotify()
+      try {
+        const response = await api.put(`/v1/talento-humano/empleados/${id}`, data)
+        if (response.data.success) {
+          success('Información actualizada correctamente')
+          return response.data.data
+        }
+        return null
+      } catch (err: any) {
+        error(err.response?.data?.message || 'Error al actualizar información')
+        return null
+      }
     }
   }
 })

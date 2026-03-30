@@ -16,7 +16,9 @@ export const useOnboardingStore = defineStore('onboarding', {
     nacionalidades: [] as any[],
     expedidos: [] as any[], // Siempre de Bolivia
     departamentos: [] as any[],
-    ciudades: [] as any[]
+    ciudades: [] as any[],
+    cajas: [] as any[],
+    pensiones: [] as any[],
   }),
 
   getters: {
@@ -39,6 +41,7 @@ export const useOnboardingStore = defineStore('onboarding', {
 
     async verificarIdentidad(payload: any) {
       this.loading = true
+      this.resetData() // Limpiar datos previos antes de verificar para evitar "arrastre" de LocalStorage
       try {
         const resp = await api.post('/portal/verificar', payload)
         if (resp.data.success) {
@@ -50,108 +53,75 @@ export const useOnboardingStore = defineStore('onboarding', {
           // Preload persona data if exists
           const pre = result.datos_precargados
           if (pre) {
-            // ═══ Transformar datos de Eloquent a formato del formulario ═══
-            
-            // Extraer el código de expedido de la relación (ej: {codigo_expedido: 'CB'} → 'CB')
-            const expedidoCode = pre.expedido?.codigo_expedido || pre.id_expedido || 'CB'
-
-            // Extraer nacionalidad como string (ej: {gentilicio: 'Boliviana'} → 'Boliviana')
-            let nacionalidadStr = ''
-            if (typeof pre.nacionalidad === 'object' && pre.nacionalidad !== null) {
-              nacionalidadStr = pre.nacionalidad.gentilicio || pre.nacionalidad.nombre || ''
-            } else if (typeof pre.nacionalidad === 'string') {
-              nacionalidadStr = pre.nacionalidad
-            }
-
-            // Extraer ciudad como string (ej: {nombre: 'Cochabamba'} → 'Cochabamba')
-            let ciudadStr = ''
-            if (typeof pre.ciudad === 'object' && pre.ciudad !== null) {
-              ciudadStr = pre.ciudad.nombre || ''
-            } else if (typeof pre.id_ciudad === 'string') {
-              ciudadStr = pre.id_ciudad
-            } else if (typeof pre.id_ciudad === 'number') {
-              // Fallback: convertir ID a nombre si posible
-              const ciudades: Record<number, string> = {
-                1: 'Cochabamba', 2: 'La Paz', 3: 'Santa Cruz', 4: 'Oruro',
-                5: 'Potosí', 6: 'Chuquisaca', 7: 'Tarija', 8: 'Beni', 9: 'Pando'
-              }
-              ciudadStr = ciudades[pre.id_ciudad] || ''
-            }
-
-            // Formatear fecha para el input type="date" (YYYY-MM-DD)
+            // ═══ 1. Mapeo de Personales ═══
             let fechaNac = pre.fecha_nacimiento || payload.fecha_nacimiento || ''
-            if (fechaNac && fechaNac.includes('T')) {
-              fechaNac = fechaNac.split('T')[0]
-            }
+            if (fechaNac && fechaNac.includes('T')) fechaNac = fechaNac.split('T')[0]
 
-            // ═══ Asignar datos transformados ═══
             this.persona = {
               ...pre,
-              id_expedido: expedidoCode,
-              nacionalidad: nacionalidadStr,
-              id_ciudad: ciudadStr,
+              id_expedido: pre.id_ci_expedido || pre.id_expedido || null,
+              id_nacionalidad: pre.id_nacionalidad || 1,
+              id_ciudad: pre.id_ciudad || null,
+              id_depto_residencia: pre.id_depto_residencia || null,
               fecha_nacimiento: fechaNac,
               id_sexo: pre.id_sexo || 1,
-              id_pais: pre.id_pais || 1,
+              id_pais: pre.id_pais || 2,
             }
 
-            // Remover objetos de relaciones que no son campos del form
-            delete this.persona.sexo
-            delete this.persona.ciudad
-            delete this.persona.pais
-            delete this.persona.expedido
-            delete this.persona.formacion_pregrado
-            delete this.persona.formacion_postgrado
-            delete this.persona.experiencia_docente
-            delete this.persona.experiencia_profesional
-            delete this.persona.capacitaciones
-            delete this.persona.idiomas
-            delete this.persona.produccion_intelectual
-            delete this.persona.reconocimientos
+            // ═══ 2. Mapeo de Académico (Con normalización de nombres de campos) ═══
+            this.academico = (pre.formacion_pregrado || pre.formacionPregrado || []).map((i: any) => ({ 
+              ...i, 
+              tipo_registro: 'pregrado',
+              titulo: i.carrera,
+              fecha_emision_diploma: i.fecha_diploma,
+              fecha_emision: i.fecha_titulo
+            })).concat((pre.formacion_postgrado || pre.formacionPostgrado || []).map((i: any) => ({ 
+              ...i, 
+              tipo_registro: 'postgrado',
+              titulo: i.nombre_programa,
+              fecha_emision: i.fecha_certificacion || i.fecha_diploma
+            })))
 
-            // Cargar secciones académicas/experiencia/otros
-            this.academico = [
-              ...(pre.formacion_pregrado || []).map((i: any) => ({ ...i, tipo_registro: 'pregrado' })),
-              ...(pre.formacion_postgrado || []).map((i: any) => ({ ...i, tipo_registro: 'postgrado' }))
-            ]
-            this.experiencia = [
-              ...(pre.experiencia_docente || []).map((i: any) => ({ ...i, tipo_registro: 'docente' })),
-              ...(pre.experiencia_profesional || []).map((i: any) => ({ ...i, tipo_registro: 'profesional' }))
-            ]
-            this.otros = [
-              ...(pre.capacitaciones || []).map((i: any) => ({ ...i, tipo_registro: 'capacitacion' })),
-              ...(pre.idiomas || []).map((i: any) => ({ ...i, tipo_registro: 'idioma' })),
-              ...(pre.produccion_intelectual || []).map((i: any) => ({ ...i, tipo_registro: 'produccion' })),
-              ...(pre.reconocimientos || []).map((i: any) => ({ ...i, tipo_registro: 'reconocimiento' }))
-            ]
+            // ═══ 3. Mapeo de Experiencia ═══
+            this.experiencia = (pre.experiencia_docente || pre.experienciaDocente || []).map((i: any) => ({ 
+              ...i, 
+              tipo_registro: 'docente' 
+            })).concat((pre.experiencia_profesional || pre.experienciaProfesional || []).map((i: any) => ({ 
+              ...i, 
+              tipo_registro: 'profesional' 
+            })))
 
-            // ═══ Pre-cargar Documentos y Fotos guardadas ═══
+            // ═══ 4. Mapeo de Otros Méritos ═══
+            this.otros = (pre.capacitaciones || []).map((i: any) => ({ ...i, tipo_registro: 'capacitacion' }))
+              .concat((pre.idiomas || []).map((i: any) => ({ ...i, tipo_registro: 'idioma' })))
+              .concat((pre.produccion_intelectual || pre.produccionIntelectual || []).map((i: any) => ({ ...i, tipo_registro: 'produccion' })))
+              .concat((pre.reconocimientos || []).map((i: any) => ({ ...i, tipo_registro: 'reconocimiento' })))
+
+            // ═══ 5. PRE-CARGA DE ARCHIVOS (FOTO, CI Y RESPALDOS) ═══
+            const urlToFile = async (url: string | null, filename: string, mimeType: string) => {
+              if (!url) return null
+              try {
+                // Forzamos la descarga a través de nuestra ruta bridge de API para evitar CORS
+                const cleanUrl = url.includes('storage/') ? url.split('storage/')[1] : url
+                const res = await api.get(`/portal/archivo/${cleanUrl}`, { responseType: 'arraybuffer' })
+                return new File([res.data], filename, { type: mimeType })
+              } catch { return null }
+            }
+
+            // Foto de Perfil
+            if (pre.foto && !pre.foto.startsWith('data:')) {
+              urlToFile(pre.foto, 'foto_perfil.jpg', 'image/jpeg').then(file => {
+                if (file) {
+                  const reader = new FileReader()
+                  reader.onload = () => { this.persona.foto = reader.result as string }
+                  reader.readAsDataURL(file)
+                }
+              })
+            }
+
+            // Documentos CI
             if (pre.documentos && Array.isArray(pre.documentos)) {
-              // Recuperar foto local si no tenía en el objeto principal
               const ciDoc = pre.documentos.find((d: any) => d.tipo === 'ci' || d.tipo === 'ci_escaneado')
-
-              // Helper para convertir URL a objeto File para Q-File
-              const urlToFile = async (url: string, filename: string, mimeType: string) => {
-                try {
-                  const fullUrl = url.startsWith('http') ? url : `http://localhost:8000${url}`
-                  const res = await fetch(fullUrl)
-                  const buf = await res.arrayBuffer()
-                  return new File([buf], filename, { type: mimeType })
-                } catch { return null }
-              }
-
-              if (pre.foto && !pre.foto.startsWith('data:')) {
-                try {
-                  // Cargar URL como Base64 para el preview en frontend
-                  const fullUrl = pre.foto.startsWith('http') ? pre.foto : `http://localhost:8000${pre.foto}`
-                  const res = await fetch(fullUrl)
-                  const buf = await res.arrayBuffer()
-                  const ext = pre.foto.split('.').pop() || 'png'
-                  const base64String = btoa(new Uint8Array(buf).reduce((data, byte) => data + String.fromCharCode(byte), ''))
-                  this.persona.foto = `data:image/${ext};base64,${base64String}`
-                } catch (e) { console.error('Error pre-loading foto from persona', e) }
-              }
-              
               if (ciDoc) {
                 const mime = ciDoc.formato === 'pdf' ? 'application/pdf' : `image/${ciDoc.formato}`
                 urlToFile(ciDoc.ruta_archivo, ciDoc.nombre_archivo, mime).then(file => {
@@ -159,10 +129,51 @@ export const useOnboardingStore = defineStore('onboarding', {
                 })
               }
             }
+
+            // Pre-cargar Respaldos de Todas las Secciones Dinámicas
+            const preLoadListFiles = (list: any[]) => {
+              list.forEach(item => {
+                if (item.archivo_diploma && typeof item.archivo_diploma === 'string') {
+                  urlToFile(item.archivo_diploma, 'diploma.pdf', 'application/pdf').then(f => { if(f) item.archivo_diploma = f })
+                }
+                if (item.archivo_titulo && typeof item.archivo_titulo === 'string') {
+                  urlToFile(item.archivo_titulo, 'titulo.pdf', 'application/pdf').then(f => { if(f) item.archivo_titulo = f })
+                }
+                if (item.archivo_respaldo && typeof item.archivo_respaldo === 'string') {
+                  urlToFile(item.archivo_respaldo, 'respaldo.pdf', 'application/pdf').then(f => { if(f) item.archivo_respaldo = f })
+                }
+              })
+            }
+
+            preLoadListFiles(this.academico)
+            preLoadListFiles(this.experiencia)
+            preLoadListFiles(this.otros)
           } else {
-            // New user: just set CI and birth date
-            this.persona.ci = payload.ci
-            this.persona.fecha_nacimiento = payload.fecha_nacimiento
+            // ═══ REGISTRO TOTALMENTE NUEVO (O TRAS UN MIGRATE:FRESH EN EL BACKEND) ═══
+            // Limpiamos los arrays para que no se arrastre basura del LocalStorage
+            this.academico = []
+            this.experiencia = []
+            this.otros = []
+            this.archivos = { ci_escaneado: null }
+            
+            // Reiniciamos la persona a un estado limpio sin datos de otros usuarios
+            this.persona = { 
+              id_pais: 2, // Bolivia por defecto
+              id_sexo: 1, 
+              id_expedido: null,
+              ci: payload.ci,
+              fecha_nacimiento: payload.fecha_nacimiento,
+              nombres: '',
+              primer_apellido: '',
+              segundo_apellido: '',
+              correo_personal: '',
+              celular_personal: '',
+              direccion_domicilio: '',
+              estado_civil: 'Soltero(a)',
+              id_nacionalidad: 1,
+              id_ciudad: null,
+              id_depto_residencia: null
+            }
           }
           this.saveToLocal()
           return result
@@ -200,6 +211,7 @@ export const useOnboardingStore = defineStore('onboarding', {
       };
 
       const payload = {
+        token: this.sessionKey, // ENVIAR TOKEN PARA VALIDACIÓN
         persona: this.persona,
         academico: await processArrayFiles(this.academico),
         experiencia: await processArrayFiles(this.experiencia),
@@ -209,18 +221,33 @@ export const useOnboardingStore = defineStore('onboarding', {
 
       const resp = await api.post('/portal/completar', payload)
       if (resp.data.success) {
-        this.clearStore()
+        this.resetData()
       }
       return resp.data
     },
 
-    clearStore() {
-      this.persona = { id_pais: 1, id_sexo: 1, id_expedido: 'CB' }
+    resetData() {
+      this.persona = { 
+        id_pais: 2, 
+        id_sexo: 1, 
+        id_expedido: 'CB',
+        nombres: '',
+        primer_apellido: '',
+        segundo_apellido: '',
+        ci: '',
+        fecha_nacimiento: '',
+        id_depto_residencia: null,
+        id_ciudad: null,
+        id_caja: null,
+        id_entidad_pensiones: null,
+        nro_matricula_seguro: '',
+        nro_nua_cua: ''
+      }
       this.academico = []
       this.experiencia = []
       this.otros = []
       this.archivos = { ci_escaneado: null }
-      LocalStorage.clear()
+      LocalStorage.clear() // También limpiamos LocalStorage físico
     },
 
     // --- ACCIONES DE CATÁLOGOS GEO ---
@@ -282,6 +309,15 @@ export const useOnboardingStore = defineStore('onboarding', {
         }))
       }
       return []
+    },
+
+    async fetchCajas() {
+      if (this.cajas.length > 0) return
+      const resp = await api.get('/v1/talento-humano/catalogs')
+      if (resp.data.success) {
+        this.cajas = resp.data.data.caja_salud.map((c: any) => ({ label: c.nombre, value: c.id_caja }))
+        this.pensiones = resp.data.data.entidad_pensiones.map((p: any) => ({ label: p.nombre, value: p.id_entidad_pensiones }))
+      }
     }
   }
 })

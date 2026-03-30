@@ -1,8 +1,8 @@
 <template>
   <q-layout view="lHh Lpr lFf" class="bg-page">
     
-    <!-- 1. HEADER (ESTILO SISPO: PÚRPURA UNITEPC) -->
-    <q-header flat class="bg-unitepc text-white">
+    <!-- 1. HEADER (DEGRADADO PORTAL UNITEPC) -->
+    <q-header flat class="bg-gradient-portal text-white">
       <q-toolbar class="q-py-sm q-px-md">
         <q-btn flat dense round icon="menu" @click="toggleLeftDrawer" class="q-mr-md" />
 
@@ -11,13 +11,11 @@
             {{ pageTitle }}
           </div>
           <div class="text-caption opacity-80 letter-spacing-1">
-            Universidad Técnica Privada Cosmos
+            SIGETH - UNITEPC
           </div>
         </div>
 
         <q-space />
-        
-        <q-btn flat round icon="public" />
       </q-toolbar>
     </q-header>
 
@@ -39,22 +37,10 @@
           </div>
         </div>
 
-        <!-- Portal Public Button -->
-        <div class="q-px-md q-mb-md">
-           <q-btn 
-            flat 
-            no-caps 
-            class="full-width bg-grey-1 text-grey-9 rounded-8 q-py-sm" 
-            icon="language" 
-            label="Ver Portal Público" 
-            style="font-size: 13px;"
-           />
-        </div>
-
         <!-- Section Label -->
         <div class="q-px-md q-mt-lg">
           <div class="text-grey-5 text-weight-bolder q-mb-sm letter-spacing-1" style="font-size: 9px;">
-            MENÚ PRINCIPAL (SISTEMA DE POSTULACIÓN)
+            MENÚ PRINCIPAL
           </div>
         </div>
 
@@ -103,9 +89,9 @@
            <q-btn
              flat
              no-caps
-             class="full-width bg-purple-soft text-primary rounded-8 text-weight-bold"
-             icon="home"
-             label="Volver al Portal"
+             class="full-width btn-gradient-portal text-white rounded-8 text-weight-bold"
+             icon="logout"
+             label="Cerrar Sesión"
              style="font-size: 13px;"
              @click="handleLogout"
            />
@@ -135,13 +121,12 @@ const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
 
+// Menú del Sistema de Gestión de Talento Humano (SIGETH)
 const navItems = [
-  { label: 'Dashboard', icon: 'grid_view', path: '/', requiresAdmin: false },
-  { label: 'Mi Hoja de Vida', icon: 'badge', path: '/personal', requiresAdmin: false },
-  { label: 'Expedientes', icon: 'folder_shared', path: '/personal/list', requiresAdmin: false },
-  { label: 'Convocatorias', icon: 'campaign', path: '/talento-humano', requiresAdmin: false },
-  { label: 'Postulaciones', icon: 'group_add', path: '/academico', requiresAdmin: false },
-  { label: 'Evaluación Méritos', icon: 'fact_check', path: '/beneficios', requiresAdmin: false },
+  { label: 'Inicio', icon: 'dashboard', path: '/', requiresAdmin: false },
+  { label: 'Personas', icon: 'badge', path: '/personal', requiresAdmin: false },
+  { label: 'Catálogos', icon: 'folder_open', path: '/geo', requiresAdmin: true },
+  { label: 'Mi Perfil', icon: 'account_circle', path: '/perfil', requiresAdmin: false },
 ]
 
 const pageTitle = computed(() => {
@@ -201,9 +186,9 @@ $sispo-grey: #f4f6f8;    // Gris suave para cards sidebar
 }
 
 .nav-item-active-teal {
-  background: $sispo-accent !important;
+  background: linear-gradient(90deg, $sispo-primary, $sispo-accent) !important;
   color: white !important;
-  box-shadow: 0 4px 10px rgba(0, 169, 157, 0.4);
+  box-shadow: 0 4px 15px rgba(106, 55, 163, 0.4);
   
   .nav-icon { color: white !important; }
 }

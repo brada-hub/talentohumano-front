@@ -71,7 +71,7 @@
               </q-avatar>
               <div class="column">
                 <span class="text-weight-bold">
-                  {{ props.row.persona.primer_apellido }} {{ props.row.persona.segundo_apellido }}, {{ props.row.persona.nombres }}
+                  {{ [props.row.persona.primer_apellido, props.row.persona.segundo_apellido, props.row.persona.nombres].filter(Boolean).join(' ') }}
                 </span>
                 <span class="text-caption text-grey-6">CI: {{ props.row.persona.ci }}</span>
               </div>
@@ -109,9 +109,38 @@
         <!-- Slot: Acciones -->
         <template v-slot:body-cell-actions="props">
           <q-td :props="props" auto-width>
-            <q-btn flat round dense color="primary" icon="visibility" :to="`/personal/${props.row.id_empleado}`"><q-tooltip>Ver Detalle</q-tooltip></q-btn>
-            <q-btn flat round dense color="deep-purple" icon="school" @click="generarOnboarding(props.row.persona.id)"><q-tooltip>Habilitar Registro (Onboarding)</q-tooltip></q-btn>
-            <q-btn flat round dense color="negative" icon="delete" @click="confirmDelete(props.row)"><q-tooltip>Eliminar</q-tooltip></q-btn>
+            <div class="row no-wrap q-gutter-xs">
+              <!-- Botón principal de vista rápida en modal -->
+              <q-btn unelevated rounded dense color="indigo-7" icon="person_search" @click="openQuickView(props.row, 'info')" class="q-px-sm">
+                <q-tooltip>Vista Rápida</q-tooltip>
+              </q-btn>
+              
+              <q-btn-dropdown flat round dense color="grey-7" dropdown-icon="more_vert" no-icon-animation>
+                <q-list style="min-width: 200px" class="q-py-sm">
+                  <q-item clickable v-close-popup @click="openQuickView(props.row, 'cv')">
+                    <q-item-section avatar><q-icon name="picture_as_pdf" color="red-8" /></q-item-section>
+                    <q-item-section>Hoja de Vida (CV)</q-item-section>
+                  </q-item>
+                  <q-item clickable v-close-popup @click="openQuickView(props.row, 'contracts')">
+                    <q-item-section avatar><q-icon name="history" color="indigo-7" /></q-item-section>
+                    <q-item-section>Historial Laboral</q-item-section>
+                  </q-item>
+                  <q-item clickable v-close-popup @click="openQuickView(props.row, 'legajo')">
+                    <q-item-section avatar><q-icon name="receipt_long" color="orange-8" /></q-item-section>
+                    <q-item-section>Legajo Digital</q-item-section>
+                  </q-item>
+                  <q-separator />
+                  <q-item clickable v-close-popup @click="generarOnboarding(props.row.persona.id)">
+                    <q-item-section avatar><q-icon name="school" color="deep-purple" /></q-item-section>
+                    <q-item-section>Habilitar Onboarding</q-item-section>
+                  </q-item>
+                  <q-item clickable v-close-popup @click="confirmDelete(props.row)" class="text-negative">
+                    <q-item-section avatar><q-icon name="delete" /></q-item-section>
+                    <q-item-section>Eliminar</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-btn-dropdown>
+            </div>
           </q-td>
         </template>
 
@@ -125,6 +154,75 @@
       </q-table>
     </div>
 
+    <!-- Vista Rápida Modal -->
+    <q-dialog v-model="quickView.show" maximized persistent>
+      <q-card v-if="quickView.employee" class="bg-grey-1">
+        <q-toolbar class="bg-gradient-portal text-white q-py-md">
+          <q-avatar size="48px" class="q-mr-md shadow-2" style="border: 2px solid rgba(255,255,255,0.3)">
+             <img :src="`https://ui-avatars.com/api/?name=${quickView.employee.persona.primer_apellido}+${quickView.employee.persona.nombres}&background=fff&color=6A37A3&bold=true`" />
+          </q-avatar>
+          <q-toolbar-title>
+            <div class="text-weight-bolder text-h6">{{ quickView.employee.persona.primer_apellido }} {{ quickView.employee.persona.nombres }}</div>
+            <div class="text-caption opacity-90 text-weight-bold">CI: {{ quickView.employee.persona.ci }} | {{ quickView.employee.estado_laboral }}</div>
+          </q-toolbar-title>
+          <q-btn flat round dense icon="close" v-close-popup class="bg-white/10" />
+        </q-toolbar>
+
+        <q-linear-progress v-if="quickView.loading" indeterminate color="amber" size="3px" />
+
+        <q-tabs
+          v-model="quickView.tab"
+          dense
+          class="bg-white text-grey-7"
+          active-color="primary"
+          indicator-color="primary"
+          align="justify"
+          narrow-indicator
+        >
+          <q-tab name="info" label="Información" icon="person" />
+          <q-tab name="cv" label="Hoja de Vida" icon="description" />
+          <q-tab name="contracts" label="Contratos" icon="history" />
+          <q-tab name="legajo" label="Legajo" icon="folder_shared" />
+        </q-tabs>
+        <q-separator />
+
+        <q-card-section class="scroll q-pa-none" style="height: calc(100vh - 120px)">
+          <q-tab-panels v-model="quickView.tab" animated class="bg-transparent">
+            <q-tab-panel name="info" class="q-pa-md">
+              <PersonalInfoTab 
+                :persona="quickView.employee.persona"
+                :correo_institucional="quickView.employee.correo_institucional"
+                :caja="quickView.employee.caja"
+                :pensiones="quickView.employee.pensiones"
+                :base-url="apiBaseUrl"
+                :empleado-id="quickView.employee.id_empleado"
+                @updated="(data) => { quickView.employee = data; loadEmployees(); }"
+              />
+            </q-tab-panel>
+            
+            <q-tab-panel name="cv" class="q-pa-md">
+              <PersonalCvTab 
+                :persona="quickView.employee.persona"
+                :cargo="quickView.employee.contrato_activo?.cargo?.nombre_cargo"
+                :area="quickView.employee.contrato_activo?.area?.nombre_area"
+                :base-url="apiBaseUrl"
+                :is-generating-pdf="isGeneratingCv"
+                @download="downloadCvPdf(quickView.employee.persona)"
+              />
+            </q-tab-panel>
+
+            <q-tab-panel name="contracts" class="q-pa-md">
+              <PersonalHistoryTab :contratos="quickView.employee.contratos" />
+            </q-tab-panel>
+
+            <q-tab-panel name="legajo" class="q-pa-md">
+              <PersonalLegajoTab :id-empleado="quickView.employee.id_empleado" />
+            </q-tab-panel>
+          </q-tab-panels>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
     <!-- Dialog de Registro -->
     <RegistroEmpleadoDialog v-model="showDialog" />
   </q-page>
@@ -132,11 +230,17 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { usePersonalStore } from 'stores/personalStore'
+import { usePersonalStore } from 'src/stores/personalStore'
 import { QTableColumn } from 'quasar'
 import { Loading, useQuasar, copyToClipboard } from 'quasar'
 import RegistroEmpleadoDialog from 'components/RegistroEmpleadoDialog.vue'
 import { api } from 'boot/axios'
+
+// Sub-componentes para el modal
+import PersonalInfoTab from '../modules/personal/components/PersonalInfoTab.vue'
+import PersonalCvTab from '../modules/personal/components/PersonalCvTab.vue'
+import PersonalHistoryTab from '../modules/personal/components/PersonalHistoryTab.vue'
+import PersonalLegajoTab from '../modules/personal/components/PersonalLegajoTab.vue'
 
 const $q = useQuasar()
 const personalStore = usePersonalStore()
@@ -145,6 +249,17 @@ const showDialog = ref(false)
 const loading = computed(() => personalStore.loading)
 const employees = computed(() => personalStore.employees)
 const onboardingEnabled = ref(false)
+
+// Estado para la vista rápida
+const quickView = ref({
+  show: false,
+  tab: 'info',
+  employee: null as any,
+  loading: false
+})
+const isGeneratingCv = ref(false)
+
+const apiBaseUrl = api.defaults.baseURL?.replace(/\/api$/, '') || 'http://localhost:8000'
 
 const columns: QTableColumn[] = [
   { name: 'nombre', label: 'Funcionario', field: 'id_empleado', align: 'left' },
@@ -188,6 +303,62 @@ const copiarLinkPublico = async () => {
   })
 }
 
+const openQuickView = async (employee: any, tab: string = 'info') => {
+  // Mostramos lo que tenemos (básico) mientras carga el resto
+  quickView.value.employee = JSON.parse(JSON.stringify(employee))
+  quickView.value.tab = tab
+  quickView.value.show = true
+  quickView.value.loading = true
+  
+  // Cargamos el detalle completo para que las pestañas de CV e Historial tengan toda la info
+  try {
+    const details = await personalStore.fetchEmployeeById(employee.id_empleado)
+    if (details) {
+      quickView.value.employee = details
+    }
+  } catch (err) {
+    console.error('Error fetching full details', err)
+  } finally {
+    quickView.value.loading = false
+  }
+}
+
+const downloadCvPdf = async (persona: any) => {
+  if (!persona) return
+  
+  try {
+    isGeneratingCv.value = true
+    Loading.show({ message: 'Generando CV PDF completo (incluyendo anexos)...' })
+    const response = await api.get(`/v1/talento-humano/cv/${persona.id}/descargar`, {
+      responseType: 'blob',
+      timeout: 60000 // Aumentar timeout para procesos de PDF pesados
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `CV_${persona.nombres}_${persona.primer_apellido}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    $q.notify({
+      type: 'positive',
+      message: 'CV descargado correctamente',
+      icon: 'download'
+    })
+  } catch (error) {
+    console.error('Error downloading CV', error);
+    $q.notify({
+      type: 'negative',
+      message: 'No se pudo generar el CV PDF'
+    })
+  } finally {
+    isGeneratingCv.value = false
+    Loading.hide()
+  }
+}
+
 const generarOnboarding = async (idPersona: string) => {
   Loading.show({ message: 'Generando acceso seguro...' })
   try {
@@ -220,6 +391,7 @@ const confirmDelete = (row: any) => {
 onMounted(() => {
   loadEmployees()
   loadPortalStatus()
+  personalStore.fetchCatalogs()
 })
 </script>
 

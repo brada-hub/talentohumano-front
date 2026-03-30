@@ -33,7 +33,10 @@
               </q-item-section>
               <q-item-section>
                 <q-item-label class="text-weight-bolder text-indigo-9">{{ item.titulo }}</q-item-label>
-                <q-item-label caption class="text-weight-medium">{{ item.nivel }} - {{ item.institucion }}</q-item-label>
+                <q-item-label caption class="text-weight-medium">
+                  {{ item.nivel }} - {{ item.institucion }}
+                  <span class="text-grey-6">({{ deptoOptions.find(d => d.value === item.id_depto)?.label || 'N/R' }})</span>
+                </q-item-label>
               </q-item-section>
               <q-item-section side>
                 <div class="row q-gutter-xs">
@@ -73,7 +76,10 @@
               </q-item-section>
               <q-item-section>
                 <q-item-label class="text-weight-bolder text-teal-9">{{ item.titulo }}</q-item-label>
-                <q-item-label caption class="text-weight-medium">{{ item.tipo }} - {{ item.institucion }}</q-item-label>
+                <q-item-label caption class="text-weight-medium">
+                  {{ item.tipo }} - {{ item.institucion }}
+                   <span class="text-grey-6">({{ deptoOptions.find(d => d.value === item.id_depto)?.label || 'N/R' }})</span>
+                </q-item-label>
               </q-item-section>
               <q-item-section side>
                 <div class="row q-gutter-xs">

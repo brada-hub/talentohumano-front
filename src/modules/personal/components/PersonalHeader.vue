@@ -1,45 +1,37 @@
 <template>
-  <div class="header-mockup shadow-12 overflow-hidden">
-    <div class="header-mockup__content q-pa-xl row no-wrap items-center relative-position">
+  <div class="header-mockup shadow-2 overflow-hidden">
+    <div class="header-mockup__content q-pa-md row no-wrap items-center relative-position">
       
-      <!-- Photo Profile with Status Badge -->
+      <!-- Photo Profile (Minimal) -->
       <div class="relative-position">
-        <q-avatar size="140px" class="profile-avatar-square shadow-10">
+        <q-avatar size="60px" class="profile-avatar border-glow-teal">
           <img :src="avatarUrl" />
         </q-avatar>
-        <div class="status-badge-absolute flex flex-center">
-          <span class="dot-active q-mr-xs"></span>
-          <span class="text-caption text-weight-bolder">{{ status?.toUpperCase() || 'ACTIVO' }}</span>
-        </div>
+        <div class="status-dot"></div>
       </div>
 
-      <!-- Name and Main Info -->
-      <div class="column q-ml-xl text-white full-width">
-        <div class="row justify-between items-start no-wrap">
-          <div class="column">
-            <h1 class="text-h3 text-weight-bolder q-ma-none text-uppercase">{{ name }}</h1>
-            <div class="text-h6 text-weight-medium opacity-80 row items-center">
-              {{ role }}
-              <span class="q-mx-sm opacity-50">•</span>
-              {{ area }}
-            </div>
+      <!-- Compact Name and Info -->
+      <div class="row no-wrap items-center q-ml-md full-width">
+        <div class="column">
+          <div class="row items-center q-gutter-md">
+            <h1 class="text-h6 text-weight-bolder q-ma-none text-white text-uppercase letter-spacing-1">{{ name }}</h1>
+            <q-badge color="teal-9" class="q-pa-xs px-2 rounded-4 text-weight-bold opacity-80" outline>CI: {{ id }}</q-badge>
           </div>
-          <!-- Action Buttons Top Right -->
-          <div class="row q-gutter-sm">
-            <q-btn round flat color="white" icon="edit" class="bg-white-10"><q-tooltip>Editar Perfil</q-tooltip></q-btn>
-            <q-btn round flat color="white" icon="person_off" class="bg-white-10"><q-tooltip>Desactivar Cuenta</q-tooltip></q-btn>
+          <div class="text-caption text-weight-medium text-grey-4 row items-center">
+            {{ role }}
+            <span class="q-mx-sm opacity-30">|</span>
+            {{ area }}
+            <span v-if="location" class="q-mx-sm opacity-30">|</span>
+            <span v-if="location" class="row items-center"><q-icon name="location_on" size="12px" /> {{ location }}</span>
           </div>
         </div>
+        
+        <q-space />
 
-        <!-- Chips Info Row -->
-        <div class="row q-gutter-md q-mt-lg items-center">
-          <div class="header-info-chip" v-for="chip in infoChips" :key="chip.label">
-            <q-icon :name="chip.icon" size="20px" class="q-mr-sm" :class="chip.iconClass" />
-            <div class="column">
-              <span class="chip-label">{{ chip.label }}</span>
-              <span class="chip-value">{{ chip.value }}</span>
-            </div>
-          </div>
+        <!-- Minimal Actions -->
+        <div class="row q-gutter-xs">
+          <q-btn flat round color="white" icon="o_edit" size="sm" class="opacity-60 hover-opacity-100" />
+          <q-btn flat round color="white" icon="o_settings" size="sm" class="opacity-60 hover-opacity-100" />
         </div>
       </div>
     </div>
@@ -47,8 +39,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-
 interface Props {
   name: string;
   role: string;
@@ -59,70 +49,42 @@ interface Props {
   birthDate?: string;
   avatarUrl?: string;
 }
-
-const props = defineProps<Props>()
-
-const infoChips = computed(() => [
-  { label: 'ID LEGAJO', value: `EMP-${String(props.id).padStart(4, '0')}`, icon: 'badge', iconClass: 'text-primary' },
-  { label: 'SEDE ORIGEN', value: props.location || 'Cochabamba, Bolivia', icon: 'location_on', iconClass: 'text-red-5' },
-  { label: 'NACIMIENTO', value: props.birthDate || 'Feb 24, 1995', icon: 'cake', iconClass: 'text-indigo-5' }
-])
+defineProps<Props>()
 </script>
 
 <style lang="scss" scoped>
 .header-mockup {
-  border-radius: 24px;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   position: relative;
   
   &__content {
-    background-image: url('data:image/svg+xml,<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" opacity="0.03"/></svg>');
-    background-position: right bottom;
-    background-repeat: no-repeat;
+    background-image: radial-gradient(circle at top right, rgba(0, 169, 157, 0.1), transparent 70%);
   }
 }
 
-.profile-avatar-square {
-  border-radius: 20px;
-  border: 4px solid rgba(255, 255, 255, 0.1);
+.profile-avatar {
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s;
+  &:hover { border-color: #00A99D; }
 }
 
-.status-badge-absolute {
+.border-glow-teal { box-shadow: 0 0 15px rgba(0, 169, 157, 0.3); }
+
+.status-dot {
   position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
   background: #10b981;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 100px;
-  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.4);
-}
-
-.dot-active {
-  width: 8px;
-  height: 8px;
-  background: white;
   border-radius: 50%;
-  display: inline-block;
-  box-shadow: 0 0 8px white;
+  border: 2px solid #0f172a;
 }
 
-.header-info-chip {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 8px 16px;
-  display: flex;
-  align-items: center;
-  backdrop-filter: blur(5px);
-  
-  .chip-label { font-size: 8px; font-weight: 800; color: rgba(255, 255, 255, 0.4); letter-spacing: 1px; }
-  .chip-value { font-size: 13px; font-weight: 700; color: white; }
-}
-
-.bg-white-10 {
-  background: rgba(255, 255, 255, 0.1);
-  &:hover { background: rgba(255, 255, 255, 0.2); }
-}
+.letter-spacing-1 { letter-spacing: 0.5px; }
+.opacity-30 { opacity: 0.3; }
+.opacity-60 { opacity: 0.6; }
+.hover-opacity-100:hover { opacity: 1; }
+.rounded-4 { border-radius: 4px; }
 </style>

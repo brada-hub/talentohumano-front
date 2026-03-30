@@ -97,6 +97,46 @@
             </q-file>
           </div>
         </div>
+
+        <!-- SECCIÓN: SEGURIDAD SOCIAL -->
+        <div class="row q-col-gutter-lg q-mt-lg">
+          <div class="col-12">
+            <div class="text-subtitle1 text-weight-bold text-grey-8 q-mb-sm row items-center">
+              <q-icon name="verified_user" color="indigo-9" size="sm" class="q-mr-sm" />
+              Seguridad Social y Previsión
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <q-select 
+              v-model="persona.id_caja" 
+              :options="onboardingStore.cajas" 
+              emit-value map-options
+              label="Caja de Salud *" 
+              outlined dense stack-label 
+              class="input-marble" 
+              @update:model-value="save"
+              :rules="[val => !!val || 'Campo Requerido']"
+            />
+          </div>
+          <div class="col-12 col-md-6">
+            <q-input v-model="persona.nro_matricula_seguro" @update:model-value="save" label="Nº Matrícula de Seguro (si posee)" outlined dense stack-label class="input-marble" />
+          </div>
+          <div class="col-12 col-md-6">
+            <q-select 
+              v-model="persona.id_entidad_pensiones" 
+              :options="onboardingStore.pensiones" 
+              emit-value map-options
+              label="AFP Administradora *" 
+              outlined dense stack-label 
+              class="input-marble" 
+              @update:model-value="save"
+              :rules="[val => !!val || 'Campo Requerido']"
+            />
+          </div>
+          <div class="col-12 col-md-6">
+            <q-input v-model="persona.nro_nua_cua" @update:model-value="save" label="Nº NUA / CUA" outlined dense stack-label class="input-marble" :rules="[val => !!val || 'Campo Requerido']" />
+          </div>
+        </div>
       </div>
     </q-card-section>
   </q-card>
@@ -131,7 +171,8 @@ onMounted(async () => {
   await Promise.all([
     onboardingStore.fetchPaises(),
     onboardingStore.fetchNacionalidades(),
-    onboardingStore.fetchExpedidos()
+    onboardingStore.fetchExpedidos(),
+    onboardingStore.fetchCajas()
   ])
   
   // Si ya tiene un país seleccionado de antes (Bolivia por defecto), cargar los deptos de residencia
