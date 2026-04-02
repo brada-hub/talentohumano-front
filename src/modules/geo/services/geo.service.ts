@@ -66,6 +66,11 @@ export const geoService = {
     return nacionalidadesCache!
   },
 
+  async getSedes(): Promise<any[]> {
+    const response = await api.get('/v1/talento-humano/sedes')
+    return response.data.data
+  },
+
   // Clear cache
   clearCache() {
     paisesCache = null

@@ -47,8 +47,8 @@
               <div class="info-value">
                 <q-chip
                   v-for="role in authStore.userRoles"
-                  :key="role"
-                  :label="role"
+                  :key="typeof role === 'string' ? role : role.id_rol || role.nombres"
+                  :label="typeof role === 'string' ? role : role.nombres"
                   outline
                   color="primary"
                   size="sm"
@@ -82,8 +82,8 @@
         <div class="permissions-grid">
           <q-chip
             v-for="permission in authStore.userPermissions"
-            :key="permission"
-            :label="permission"
+            :key="typeof permission === 'string' ? permission : (permission.id_permision || permission.nombres)"
+            :label="typeof permission === 'string' ? permission : permission.nombres"
             outline
             color="secondary"
             size="sm"
@@ -184,7 +184,10 @@ const userInitials = computed(() => {
 
 const activeRole = computed(() => {
   const roles = authStore.user?.roles || []
-  return roles.length > 0 ? roles[0] : 'Sin rol'
+  if (roles.length === 0) return 'Sin rol'
+  const r = roles[0]
+  if (typeof r === 'string') return r
+  return r.nombres || 'Sin rol'
 })
 
 const handleLogout = async () => {

@@ -10,6 +10,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'geo', component: () => import('modules/geo/pages/GeoCatalogosPage.vue') },
       { path: 'personal', component: () => import('pages/PersonalPage.vue') },
       { path: 'personal/:id', component: () => import('pages/PersonalDetailPage.vue'), name: 'personal-detail' },
+      { path: 'sso', component: () => import('modules/sso/pages/SsoManagementPage.vue'), name: 'sso-management' },
     ],
   },
   {

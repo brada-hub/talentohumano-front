@@ -1,51 +1,49 @@
 <template>
   <q-page class="login-page">
-    <!-- Background with exact portal gradient -->
-    <div class="login-bg"></div>
+    <!-- Background with exact portal gradient and grid pattern -->
+    <div class="login-bg sso-grid"></div>
 
     <!-- Login Card -->
     <div class="login-container">
       <q-card class="login-card">
         <!-- Logo Section -->
         <q-card-section class="text-center q-pb-none">
-          <q-img src="/unitepc_escudo.png" width="80px" class="q-mb-md" />
-          <div class="text-h5 text-weight-bolder">
-            <span class="text-white">UNITE</span><span class="text-white">PC</span>
+          <q-img src="/unitepc_escudo.png" width="90px" class="q-mb-md logo-float" />
+          <div class="text-h4 text-weight-bolder brand-text">
+            UNITEPC
           </div>
-          <div class="text-caption text-white q-mt-xs">
+          <div class="text-subtitle2 text-secondary q-mt-xs text-weight-medium">
             Sistema de Gestión de Talento Humano
           </div>
         </q-card-section>
 
         <!-- Form Section -->
-        <q-card-section class="q-pt-lg">
-          <q-form @submit="onSubmit" class="q-gutter-md">
+        <q-card-section class="q-pt-xl">
+          <q-form @submit="onSubmit" class="q-gutter-y-lg">
             <q-input
               v-model="loginForm.username"
               outlined
-              color="primary"
               label="Nombre de usuario"
               autocomplete="username"
               :rules="[val => !!val || 'El usuario es requerido']"
-              bg-color="white"
+              class="modern-input"
             >
               <template #prepend>
-                <q-icon name="person" color="primary" />
+                <q-icon name="person" class="text-primary" />
               </template>
             </q-input>
 
             <q-input
               v-model="loginForm.password"
               outlined
-              color="primary"
               label="Contraseña"
               autocomplete="current-password"
               :type="showPassword ? 'text' : 'password'"
               :rules="[val => !!val || 'La contraseña es requerida']"
-              bg-color="white"
+              class="modern-input"
             >
               <template #prepend>
-                <q-icon name="lock" color="primary" />
+                <q-icon name="lock" class="text-primary" />
               </template>
               <template #append>
                 <q-btn
@@ -63,8 +61,9 @@
             <q-btn
               label="Acceder al Sistema"
               type="submit"
-              class="full-width q-py-md text-weight-bold btn-gradient-portal"
+              class="full-width q-py-md text-weight-bold btn-gradient-portal modern-btn"
               rounded
+              unelevated
               :loading="authStore.loading"
               :disable="authStore.loading"
             >
@@ -76,10 +75,14 @@
         </q-card-section>
 
         <!-- Footer -->
-        <q-card-section class="text-center q-pt-sm">
-          <q-btn flat color="secondary" label="¿Olvidaste tu contraseña?" size="sm" no-caps />
+        <q-card-section class="text-center q-pt-md">
+          <q-btn flat color="secondary" label="¿Olvidaste tu contraseña?" size="sm" no-caps class="hover-underline" />
         </q-card-section>
       </q-card>
+      
+      <div class="text-center q-mt-lg text-white opacity-60 text-caption">
+        &copy; {{ new Date().getFullYear() }} UNITEPC - Todos los derechos reservados
+      </div>
     </div>
   </q-page>
 </template>
@@ -107,7 +110,17 @@ const onSubmit = async () => {
   try {
     await authStore.login(loginForm)
     success('Bienvenido al sistema SIGETH')
-    router.push('/')
+    
+    // Si viene de un sistema externo por SSO
+    if (router.currentRoute.value.query.returnTo) {
+      const returnTo = router.currentRoute.value.query.returnTo as string;
+      const tokenStr = authStore.token;
+      const userStr = btoa(unescape(encodeURIComponent(JSON.stringify(authStore.user))));
+      const separator = returnTo.includes('?') ? '&' : '?';
+      window.location.href = `${returnTo}${separator}token=${tokenStr}&user=${userStr}`;
+    } else {
+      router.push('/')
+    }
   } catch (error) {
     notifyError(error as string)
   }
@@ -115,40 +128,98 @@ const onSubmit = async () => {
 </script>
 
 <style lang="scss" scoped>
-// ═══ Login Page - Exact Portal Gradient ═══
 .login-page {
   min-height: 100vh;
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow: hidden;
 }
 
-// Background - EXACT portal gradient (no changes)
 .login-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, #6A37A3 0%, #00A99D 100%);
+  background: linear-gradient(135deg, #6A37A3 0%, #00A99D 100%);
   z-index: 0;
 }
 
-// Centered container
 .login-container {
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 400px;
-  padding: 20px;
+  max-width: 440px;
+  padding: 24px;
 }
 
-// Login card
 .login-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  padding: 32px 24px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 40px 32px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+}
+
+.brand-text {
+  background: linear-gradient(90deg, #6A37A3 0%, #00A99D 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 2px;
+}
+
+.logo-float {
+  filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.modern-input {
+  :deep(.q-field__control) {
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.5) !important;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.8) !important;
+    }
+    
+    &::before {
+      border-color: rgba(0, 0, 0, 0.05) !important;
+    }
+  }
+  
+  :deep(.q-field--focused .q-field__control) {
+    box-shadow: 0 0 0 3px rgba(106, 55, 163, 0.1);
+  }
+}
+
+.modern-btn {
+  height: 54px;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 10px 20px -5px rgba(106, 55, 163, 0.4) !important;
+}
+
+.hover-underline {
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.opacity-60 {
+  opacity: 0.6;
 }
 </style>

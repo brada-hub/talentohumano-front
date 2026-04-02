@@ -8,9 +8,29 @@ export const useGeoStore = defineStore('geo', () => {
   const departamentos = ref<Departamento[]>([])
   const ciudades = ref<Ciudad[]>([])
   const nacionalidades = ref<Nacionalidad[]>([])
+  const sedes = ref<any[]>([])
   
   const loading = ref(false)
   const error = ref<string | null>(null)
+
+  // Actions
+  async function fetchSedes() {
+    loading.value = true
+    try {
+      // In this system sedes are in the talento-humano catalogs normally, 
+      // but let's assume we can fetch them via a dedicated geo-like endpoint 
+      // or just pull from the global catalogs if available.
+      // For now, let's pull from the existing API.
+      const response = await geoService.getSedes()
+      sedes.value = response
+      return sedes.value
+    } catch (e: any) {
+      error.value = e.message || 'Error al cargar sedes'
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
 
   // Actions
   async function fetchPaises() {
@@ -110,10 +130,12 @@ export const useGeoStore = defineStore('geo', () => {
     departamentos,
     ciudades,
     nacionalidades,
+    sedes,
     loading,
     error,
     
     // Actions
+    fetchSedes,
     fetchPaises,
     fetchDepartamentos,
     fetchCiudades,

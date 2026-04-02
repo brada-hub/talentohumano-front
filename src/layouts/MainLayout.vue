@@ -107,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from 'src/modules/auth/stores/useAuthStore'
 
@@ -116,6 +116,10 @@ const route = useRoute()
 const authStore = useAuthStore()
 
 const leftDrawerOpen = ref(false)
+
+onMounted(async () => {
+  await authStore.fetchMe()
+})
 
 const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value
@@ -126,6 +130,7 @@ const navItems = [
   { label: 'Inicio', icon: 'dashboard', path: '/', requiresAdmin: false },
   { label: 'Personas', icon: 'badge', path: '/personal', requiresAdmin: false },
   { label: 'Catálogos', icon: 'folder_open', path: '/geo', requiresAdmin: true },
+  { label: 'SSO & Accesos', icon: 'admin_panel_settings', path: '/sso', requiresAdmin: true },
   { label: 'Mi Perfil', icon: 'account_circle', path: '/perfil', requiresAdmin: false },
 ]
 
@@ -136,11 +141,15 @@ const pageTitle = computed(() => {
 
 const activeRole = computed(() => {
   const roles = authStore.user?.roles || []
-  return roles.length > 0 ? roles[0].nombres : 'Usuario'
+  if (roles.length > 0) {
+    return typeof roles[0] === 'string' ? roles[0] : (roles[0].nombres || 'Usuario')
+  }
+  return 'Usuario'
 })
 
 const isAdmin = computed(() => {
-  return activeRole.value === 'ADMIN' || activeRole.value === 'SISTEMAS' || activeRole.value === 'ADMINISTRADOR'
+  const role = (activeRole.value || '').toUpperCase()
+  return role === 'ADMIN' || role === 'SISTEMAS' || role === 'ADMINISTRADOR'
 })
 
 const handleLogout = async () => {

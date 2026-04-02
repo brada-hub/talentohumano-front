@@ -8,7 +8,7 @@ const api = axios.create({
 // Interceptor to add Bearer token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('sigeth_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -29,8 +29,8 @@ api.interceptors.response.use(
       // No redirigir al login si la petición es del portal de onboarding
       const requestUrl = error.config?.url || ''
       if (!requestUrl.includes('/portal/')) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        localStorage.removeItem('sigeth_token');
+        localStorage.removeItem('sigeth_user');
         window.location.href = '#/login'; // Hash router usually
       }
     }

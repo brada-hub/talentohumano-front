@@ -16,6 +16,7 @@
         <q-tab name="paises" icon="public" label="Países" />
         <q-tab name="departamentos" icon="map" label="Departamentos" />
         <q-tab name="ciudades" icon="location_city" label="Ciudades" />
+        <q-tab name="sedes" icon="business" label="Sedes / Campi" />
       </q-tabs>
 
       <q-separator />
@@ -144,6 +145,51 @@
             </template>
           </q-table>
         </q-tab-panel>
+
+        <!-- Sedes Panel -->
+        <q-tab-panel name="sedes">
+          <div class="table-toolbar row items-center q-gutter-x-md">
+            <q-input
+              v-model="searchSedes"
+              outlined
+              dense
+              placeholder="Buscar sede (Cochabamba, La Paz...)"
+              class="table-search col"
+              debounce="300"
+            >
+              <template #prepend>
+                <q-icon name="search" color="primary" />
+              </template>
+            </q-input>
+            <q-chip outline color="secondary" icon="info">Estas sedes se sincronizan con SISPO/SIGVA</q-chip>
+          </div>
+
+          <q-table
+            :rows="filteredSedes"
+            :columns="sedesColumns"
+            row-key="id_sede"
+            flat
+            class="sigeth-table"
+            :loading="geoStore.loading"
+            :pagination="{ rowsPerPage: 10 }"
+          >
+            <template #body-cell-sigla="props">
+              <q-td :props="props">
+                <q-chip square color="indigo-1" text-color="indigo-9" class="text-weight-bold">
+                  {{ props.row.sigla }}
+                </q-chip>
+              </q-td>
+            </template>
+            <template #body-cell-activo="props">
+              <q-td :props="props">
+                <q-badge
+                  :color="props.row.activo ? 'positive' : 'negative'"
+                  :label="props.row.activo ? 'ACTIVO' : 'INACTIVO'"
+                />
+              </q-td>
+            </template>
+          </q-table>
+        </q-tab-panel>
       </q-tab-panels>
     </q-card>
   </q-page>
@@ -160,6 +206,7 @@ const geoStore = useGeoStore()
 const tab = ref('paises')
 const searchPaises = ref('')
 const searchCiudades = ref('')
+const searchSedes = ref('')
 const selectedPaisFilter = ref<number | null>(null)
 const selectedDeptoFilter = ref<number | null>(null)
 
@@ -181,6 +228,13 @@ const departamentosColumns = [
 const ciudadesColumns = [
   { name: 'nombre', label: 'Nombre', field: 'nombre', align: 'left' as const, sortable: true },
   { name: 'departamento', label: 'Departamento', field: 'departamento', align: 'left' as const },
+]
+
+const sedesColumns = [
+  { name: 'id_sede', label: 'ID', field: 'id_sede', align: 'center' as const, sortable: true },
+  { name: 'nombre', label: 'Nombre Sede', field: 'nombre', align: 'left' as const, sortable: true },
+  { name: 'sigla', label: 'Sigla', field: 'sigla', align: 'center' as const },
+  { name: 'activo', label: 'Estado', field: 'activo', align: 'center' as const },
 ]
 
 // Computed
@@ -206,6 +260,15 @@ const filteredCiudades = computed(() => {
   )
 })
 
+const filteredSedes = computed(() => {
+  if (!searchSedes.value) return geoStore.sedes
+  const search = searchSedes.value.toLowerCase()
+  return geoStore.sedes.filter(s => 
+    s.nombre.toLowerCase().includes(search) || 
+    s.sigla?.toLowerCase().includes(search)
+  )
+})
+
 // Watch paisId to load departamentos (for Departamentos tab)
 watch(selectedPaisFilter, async (paisId) => {
   // Reset depto filter when pais changes
@@ -225,6 +288,9 @@ watch(selectedDeptoFilter, async (deptoId) => {
 
 // Load data
 onMounted(async () => {
-  await geoStore.fetchPaises()
+  await Promise.all([
+    geoStore.fetchPaises(),
+    geoStore.fetchSedes()
+  ])
 })
 </script>

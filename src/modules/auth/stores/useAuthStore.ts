@@ -3,8 +3,8 @@ import api from 'src/shared/api/axios.instance';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: JSON.parse(localStorage.getItem('user') || 'null'),
-    token: localStorage.getItem('token') || null,
+    user: JSON.parse(localStorage.getItem('sigeth_user') || 'null'),
+    token: localStorage.getItem('sigeth_token') || null,
     loading: false,
   }),
 
@@ -24,8 +24,8 @@ export const useAuthStore = defineStore('auth', {
         this.token = token;
         this.user = user;
 
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('sigeth_token', token);
+        localStorage.setItem('sigeth_user', JSON.stringify(user));
 
         return true;
       } catch (error: any) {
@@ -41,8 +41,8 @@ export const useAuthStore = defineStore('auth', {
       } finally {
         this.token = null;
         this.user = null;
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        localStorage.removeItem('sigeth_token');
+        localStorage.removeItem('sigeth_user');
       }
     },
 
@@ -50,7 +50,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await api.get('/v1/auth/me');
         this.user = response.data.data;
-        localStorage.setItem('user', JSON.stringify(this.user));
+        localStorage.setItem('sigeth_user', JSON.stringify(this.user));
       } catch (error) {
         console.error('Error fetching me:', error);
       }
@@ -61,7 +61,10 @@ export const useAuthStore = defineStore('auth', {
     },
 
     hasRole(role: string): boolean {
-      return this.userRoles.some((r: any) => r.nombres === role);
+      return this.userRoles.some((r: any) => {
+        if (typeof r === 'string') return r === role;
+        return r.nombres === role;
+      });
     }
   },
 });

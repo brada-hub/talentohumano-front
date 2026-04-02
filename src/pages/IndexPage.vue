@@ -14,6 +14,36 @@
       </div>
     </div>
 
+    <!-- 1.5 MIS APLICACIONES (PORTAL) -->
+    <div v-if="externalSystems.length > 0" class="q-mb-xl">
+      <div class="text-h6 text-weight-bold q-mb-md row items-center">
+        <q-icon name="apps" color="primary" class="q-mr-sm" size="28px" />
+        Portal de Aplicaciones
+        <q-space />
+        <q-chip outline color="secondary" size="sm" icon="info">Sistemas externos autorizados</q-chip>
+      </div>
+      <div class="row q-col-gutter-md">
+        <div class="col-12 col-sm-6 col-md-4" v-for="sys in (externalSystems as any[])" :key="sys.sistema">
+          <q-card class="app-card cursor-pointer" @click="goToSystem(sys.url)" v-ripple>
+            <q-card-section class="row items-center no-wrap">
+              <q-avatar size="56px" :color="getSysColor(sys.sistema)" text-color="white" class="shadow-3 q-mr-md text-weight-bolder text-h5">
+                {{ sys.sistema.substring(0, 2).toUpperCase() }}
+              </q-avatar>
+              <div class="column">
+                <div class="text-h6 text-weight-bolder" style="line-height: 1.2">{{ sys.sistema }}</div>
+                <div class="text-caption text-grey-7 q-mt-xs text-weight-medium">
+                  {{ sys.roles.length }} {{ sys.roles.length === 1 ? 'Rol' : 'Roles' }} &bull; 
+                  {{ sys.permissions.length }} {{ sys.permissions.length === 1 ? 'Permiso' : 'Permisos' }}
+                </div>
+              </div>
+              <q-space />
+              <q-btn flat round dense icon="launch" color="grey-5" />
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
+    </div>
+
     <!-- 2. RESUMEN DE TARJETAS (ESTADÍSTICAS REALES) -->
     <div class="row q-col-gutter-lg q-mb-xl">
       <!-- Total Activos -->
@@ -155,12 +185,56 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { usePersonalStore } from 'stores/personalStore'
+import { useAuthStore } from 'src/modules/auth/stores/useAuthStore'
 import { QTableColumn } from 'quasar'
 
 const personalStore = usePersonalStore()
+const authStore = useAuthStore()
 const loading = ref(false)
 
 const stats = computed(() => personalStore.stats)
+
+// Extraer sistemas externos asignados al usuario actual
+const externalSystems = computed(() => {
+  const metadata = authStore.user?.access_metadata || {}
+  return Object.values(metadata).filter((sys: any) => sys.url && sys.sistema.toUpperCase() !== 'SIGETH')
+})
+
+const goToSystem = (url: string) => {
+  if (!url) return;
+
+  // Si es un sistema hermano (SISPO o SIGVA), pasarle el token actual para login automático
+  const token = authStore.token;
+  const user = authStore.user;
+
+  if (token && user) {
+    const userStr = btoa(unescape(encodeURIComponent(JSON.stringify(user))));
+    const isSispo = url.toLowerCase().includes(':9001') || url.toLowerCase().includes('sispo');
+    const isSigva = url.toLowerCase().includes(':9002') || url.toLowerCase().includes('sigva');
+    
+    let finalUrl = '';
+    const separator = url.includes('?') ? '&' : '?';
+
+    if (isSispo) {
+      finalUrl = `${url}/#/login?token=${token}&user=${userStr}`;
+    } else if (isSigva) {
+      finalUrl = `${url}/admin/login?token=${token}&user=${userStr}`;
+    } else {
+      finalUrl = `${url}${separator}token=${token}&user=${userStr}`;
+    }
+    
+    window.open(finalUrl, '_blank');
+  } else {
+    window.open(url, '_blank');
+  }
+}
+
+const getSysColor = (sistema: string) => {
+  const s = sistema.toLowerCase()
+  if (s.includes('sispo')) return 'deep-purple-9'
+  if (s.includes('sigva')) return 'teal-7'
+  return 'primary'
+}
 
 const recentColumns: QTableColumn[] = [
   { name: 'nombre', label: 'Funcionario', field: 'id_empleado', align: 'left' },
@@ -250,5 +324,20 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+// ESTILO PARA LAS TARJETAS DE APLICACIONES EXTERNAS
+.app-card {
+  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+    border-color: rgba(106, 55, 163, 0.3);
+  }
 }
 </style>
