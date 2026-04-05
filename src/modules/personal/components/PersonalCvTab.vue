@@ -445,7 +445,16 @@ const currentFile = ref<string | null>(null)
 
 const getFileUrl = (path: string) => {
   if (!path) return ''
-  return `${props.baseUrl}${path.startsWith('/') ? '' : '/'}${path}`
+  if (path.startsWith('data:') || /^https?:\/\//i.test(path)) return path
+
+  const cleanPath = path.includes('storage/') ? path.split('storage/')[1] : path.replace(/^\/+/, '')
+  const encodedPath = cleanPath
+    .split('/')
+    .filter(Boolean)
+    .map(segment => encodeURIComponent(segment))
+    .join('/')
+
+  return `${props.baseUrl}/api/portal/archivo/${encodedPath}`
 }
 
 const currentFileUrl = computed(() => currentFile.value ? getFileUrl(currentFile.value) : null)

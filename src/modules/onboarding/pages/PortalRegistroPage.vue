@@ -1,31 +1,26 @@
 <template>
   <q-page class="bg-marble min-h-screen font-sans">
-    
-    <!-- HEADER BANNER (ESTILO SSO-FRONT) -->
     <div class="bg-unitepc-sso q-pt-xl q-pb-xl overflow-hidden relative-position shadow-2">
-        <!-- Patrón de fondo estilo "proceso oficial" -->
-        <div class="absolute-full sso-grid"></div>
-        
-        <div class="q-px-lg relative-position z-top" style="max-width: 1000px; margin: 0 auto">
-            <div class="row items-center q-gutter-x-sm q-mb-md animate-fade">
-              <q-icon name="verified" class="text-teal-3" size="sm" />
-              <span class="text-white text-caption text-weight-bold tracking-widest uppercase">Proceso Oficial de Vinculación</span>
-            </div>
-            <h1 class="text-white text-h3 text-weight-bolder q-mt-none q-mb-md animate-slide-right tracking-tighter">
-              FORMULARIO DE <span class="text-teal-3">REGISTRO</span>
-            </h1>
-            <p class="text-white opacity-80 text-subtitle1" style="max-width: 600px">
-              Complete la información requerida de manera clara para habilitar su expediente institucional. 
-              Sus datos están resguardados por el sistema <strong>SIGETH</strong>.
-            </p>
+      <div class="absolute-full sso-grid"></div>
+
+      <div class="q-px-lg relative-position z-top" style="max-width: 1000px; margin: 0 auto">
+        <div class="row items-center q-gutter-x-sm q-mb-md animate-fade">
+          <q-icon name="verified" class="text-teal-3" size="sm" />
+          <span class="text-white text-caption text-weight-bold tracking-widest uppercase">Proceso Oficial de Vinculacion</span>
         </div>
-        
-        <q-btn flat rounded color="white" label="Atrás" to="/portal/verificar" no-caps class="absolute-top-right q-ma-md" style="z-index: 10" icon="arrow_back" />
+        <h1 class="text-white text-h3 text-weight-bolder q-mt-none q-mb-md animate-slide-right tracking-tighter">
+          FORMULARIO DE <span class="text-teal-3">REGISTRO</span>
+        </h1>
+        <p class="text-white opacity-80 text-subtitle1" style="max-width: 600px">
+          Complete la informacion requerida de manera clara para habilitar su expediente institucional.
+          Sus datos estan resguardados por el sistema <strong>SIGETH</strong>.
+        </p>
+      </div>
+
+      <q-btn flat rounded color="white" label="Atras" to="/portal/verificar" no-caps class="absolute-top-right q-ma-md" style="z-index: 10" icon="arrow_back" />
     </div>
 
-    <!-- MAIN CONTENT AREA -->
     <div class="q-pa-xl relative-position" style="max-width: 1400px; margin: 0 auto">
-      
       <q-stepper
         v-model="step"
         ref="stepper"
@@ -34,11 +29,10 @@
         flat
         class="bg-transparent q-pa-none"
       >
-        <!-- PASO 1: DATOS PERSONALES -->
         <q-step
           :name="1"
-          title="Filiación y Datos Personales"
-          subtitle="Información Obligatoria"
+          title="Filiacion y Datos Personales"
+          subtitle="Informacion Obligatoria"
           icon="person"
           :done="step > 1"
           class="q-px-none"
@@ -51,7 +45,7 @@
             <q-btn
               @click="step = 2"
               color="indigo-9"
-              :label="onboardingStore.isPersonaComplete ? 'Continuar a Documentación' : 'Faltan Campos Obligatorios'"
+              :label="onboardingStore.isPersonaComplete ? 'Continuar a Beneficiarios' : 'Faltan Campos Obligatorios'"
               icon-right="arrow_forward"
               class="shadow-10 text-weight-bold q-py-sm q-px-lg transition-transform"
               rounded
@@ -61,13 +55,30 @@
           </div>
         </q-step>
 
-        <!-- PASO 2: DOCUMENTACIÓN -->
         <q-step
           :name="2"
-          title="Documentación"
-          subtitle="Hoja de Vida y Méritos"
-          icon="folder_shared"
+          title="Beneficiarios"
+          subtitle="Herederos o derechohabientes"
+          icon="groups"
           :done="step > 2"
+          class="q-px-none"
+        >
+          <div class="animate-card-in">
+            <SeccionBeneficiarios />
+          </div>
+
+          <div class="row justify-between q-mt-xl items-center bg-white q-pa-md rounded-32 shadow-2 border-light">
+            <q-btn flat @click="step = 1" color="grey-8" label="Volver a Datos Personales" icon="arrow_back" rounded class="q-px-md"/>
+            <q-btn @click="step = 3" color="indigo-9" label="Continuar a Documentacion" icon-right="arrow_forward" unelevated class="shadow-10 text-weight-bold q-py-sm q-px-lg" rounded />
+          </div>
+        </q-step>
+
+        <q-step
+          :name="3"
+          title="Documentacion"
+          subtitle="Hoja de Vida y Meritos"
+          icon="folder_shared"
+          :done="step > 3"
           class="q-px-none"
         >
           <div class="row q-col-gutter-xl">
@@ -76,35 +87,36 @@
             <div class="col-12 animate-card-in-delay-3"><SeccionOtros /></div>
           </div>
           <div class="row justify-between q-mt-xl items-center bg-white q-pa-md rounded-32 shadow-2 border-light">
-            <q-btn flat @click="step = 1" color="grey-8" label="Volver a Datos Personales" icon="arrow_back" rounded class="q-px-md"/>
-            <q-btn @click="step = 3" color="indigo-9" label="Continuar a Finalizar" icon-right="arrow_forward" unelevated class="shadow-10 text-weight-bold q-py-sm q-px-lg" rounded />
+            <q-btn flat @click="step = 2" color="grey-8" label="Volver a Beneficiarios" icon="arrow_back" rounded class="q-px-md"/>
+            <q-btn @click="step = 4" color="indigo-9" label="Continuar a Finalizar" icon-right="arrow_forward" unelevated class="shadow-10 text-weight-bold q-py-sm q-px-lg" rounded />
           </div>
         </q-step>
 
-        <!-- PASO 3: FINALIZAR -->
         <q-step
-          :name="3"
+          :name="4"
           title="Finalizar Registro"
-          subtitle="Confirmación y Envío"
+          subtitle="Confirmacion y Envio"
           icon="check_circle"
           class="q-px-none"
         >
           <div class="animate-card-in-delay-1 text-center q-pa-xl rounded-24 bg-blue-grey-1 border-light q-mb-xl">
             <q-icon name="outbox" size="80px" color="indigo-8" class="q-mb-md animate-bounce-soft" />
-            <div class="text-h4 text-weight-bolder tracking-tight text-blue-grey-10">Todo Listo para el Envío</div>
-            <p class="text-subtitle1 text-grey-7 q-mt-md" style="max-width: 500px; margin: 0 auto;">Verifique que toda su información personal, documentos escaneados y méritos de su trayectoria han sido cargados correctamente antes de guardar definitivamente su Legajo Digital.</p>
+            <div class="text-h4 text-weight-bolder tracking-tight text-blue-grey-10">Todo Listo para el Envio</div>
+            <p class="text-subtitle1 text-grey-7 q-mt-md" style="max-width: 500px; margin: 0 auto;">
+              Verifique que toda su informacion personal, documentos escaneados y meritos de su trayectoria han sido cargados correctamente antes de guardar definitivamente su Legajo Digital.
+            </p>
           </div>
 
           <div class="row justify-between items-center q-pa-md rounded-32 bg-white">
-            <q-btn flat @click="step = 2" color="grey-8" label="Volver a Documentación" icon="arrow_back" rounded class="q-px-md"/>
-            <q-btn 
-                unelevated 
-                size="lg"
-                color="indigo-10" 
-                rounded
-                class="shadow-20 btn-finalizar q-px-xl py-md"
-                @click="submitAll"
-                :loading="onboardingStore.loading"
+            <q-btn flat @click="step = 3" color="grey-8" label="Volver a Documentacion" icon="arrow_back" rounded class="q-px-md"/>
+            <q-btn
+              unelevated
+              size="lg"
+              color="indigo-10"
+              rounded
+              class="shadow-20 btn-finalizar q-px-xl py-md"
+              @click="submitAll"
+              :loading="onboardingStore.loading"
             >
               <div class="row items-center no-wrap">
                 <q-icon name="cloud_done" class="q-mr-md" />
@@ -116,11 +128,9 @@
       </q-stepper>
     </div>
 
-    <!-- FOOTER MÁRMOL -->
     <div class="q-py-xl text-center text-grey-5 text-caption uppercase tracking-widest font-weight-bold">
-        © {{ new Date().getFullYear() }} · UNITEPC · SIGETH · Departamento de Talento Humano
+      © {{ new Date().getFullYear() }} · UNITEPC · SIGETH · Departamento de Talento Humano
     </div>
-
   </q-page>
 </template>
 
@@ -130,31 +140,31 @@ import { useRouter } from 'vue-router'
 import { useOnboardingStore } from 'src/stores/onboardingStore'
 import { Notify } from 'quasar'
 import SeccionDatosPersonales from '../components/SeccionDatosPersonales.vue'
+import SeccionBeneficiarios from '../components/SeccionBeneficiarios.vue'
 import SeccionFormacion from '../components/SeccionFormacion.vue'
 import SeccionExperiencia from '../components/SeccionExperiencia.vue'
 import SeccionOtros from '../components/SeccionOtros.vue'
 
 const router = useRouter()
 const onboardingStore = useOnboardingStore()
-
 const step = ref(1)
 
 const submitAll = async () => {
   onboardingStore.loading = true
   try {
     await onboardingStore.completarRegistro()
-    Notify.create({ 
-      color: 'indigo-10', 
-      message: '¡Expediente almacenado correctamente! Bienvenido al sistema.',
+    Notify.create({
+      color: 'indigo-10',
+      message: 'Expediente almacenado correctamente. Bienvenido al sistema.',
       icon: 'verified',
       position: 'center',
       classes: 'rounded-16 shadow-20 text-weight-bold q-pa-lg'
     })
     router.push('/portal/success')
   } catch (err: any) {
-    Notify.create({ 
-      color: 'negative', 
-      message: err.response?.data?.message || 'Error al guardar el expediente.',
+    Notify.create({
+      color: 'negative',
+      message: err.response?.data?.message || err.message || 'Error al guardar el expediente.',
       icon: 'report_problem'
     })
   } finally {
@@ -188,7 +198,6 @@ const submitAll = async () => {
 .tracking-tighter { letter-spacing: -2px; }
 .tracking-widest { letter-spacing: 2px; }
 
-// Animaciones
 .animate-fade { animation: fadeIn 0.8s ease-out; }
 .animate-slide-right { animation: slideRight 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
 .animate-card-in { animation: cardIn 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
@@ -198,13 +207,13 @@ const submitAll = async () => {
 .animate-card-in-delay-4 { opacity: 0; animation: cardIn 0.8s 0.5s forwards; }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideRight { 
-  from { opacity: 0; transform: translateX(-30px); } 
-  to { opacity: 1; transform: translateX(0); } 
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
 }
-@keyframes cardIn { 
-  from { opacity: 0; transform: translateY(40px); } 
-  to { opacity: 1; transform: translateY(0); } 
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .btn-finalizar {

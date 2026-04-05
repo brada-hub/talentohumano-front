@@ -26,7 +26,9 @@
           active-color="primary" indicator-color="primary"
           align="left" no-caps inline-label
         >
-          <q-tab name="info" label="INFORMACIÓN" icon="o_person" />
+          <q-tab name="info" label="INFORMACION" icon="o_person" />
+          <q-tab name="academico" label="ACADEMICO" icon="o_school" />
+          <q-tab name="beneficios" label="BENEFICIARIOS" icon="o_groups" />
           <q-tab name="cv" label="HOJA DE VIDA" icon="o_description" />
           <q-tab name="contracts" label="CONTRATOS" icon="o_history" />
           <q-tab name="legajo" label="LEGAJO" icon="o_folder" />
@@ -60,6 +62,19 @@
           />
         </q-tab-panel>
 
+        <q-tab-panel name="academico" class="q-pa-none">
+          <AcademicoManagerTab
+            :profile="academicProfile"
+            :loading="academicLoading"
+            :persona-id="employee.persona.id"
+            @refresh="refreshAcademicProfile"
+          />
+        </q-tab-panel>
+
+        <q-tab-panel name="beneficios" class="q-pa-none">
+          <BeneficiariosTab :empleado-id="employee.id_empleado" />
+        </q-tab-panel>
+
         <q-tab-panel name="legajo" class="q-pa-none">
           <PersonalLegajoTab :id-empleado="employee.id_empleado" />
         </q-tab-panel>
@@ -81,7 +96,9 @@ import { api } from 'boot/axios'
 
 import PersonalHeader from '../modules/personal/components/PersonalHeader.vue'
 import PersonalInfoTab from '../modules/personal/components/PersonalInfoTab.vue'
-import PersonalCvTab from '../modules/personal/components/PersonalCvTab.vue'
+import PersonalCvTab from '../modules/personal/components/PersonalCvTabV2.vue'
+import AcademicoManagerTab from 'src/modules/academico/components/AcademicoManagerTab.vue'
+import BeneficiariosTab from 'src/modules/beneficios/components/BeneficiariosTab.vue'
 import PersonalHistoryTab from '../modules/personal/components/PersonalHistoryTab.vue'
 import PersonalLegajoTab from '../modules/personal/components/PersonalLegajoTab.vue'
 
@@ -90,6 +107,8 @@ const personalStore = usePersonalStore()
 
 const loading = ref(true)
 const employee = ref<any>(null)
+const academicProfile = ref<any>(null)
+const academicLoading = ref(false)
 const tab = ref((route.query.tab as string) || 'info')
 const isGeneratingPdf = ref(false)
 
@@ -146,7 +165,19 @@ const downloadCvPdf = async () => {
 const loadEmployee = async () => {
   const id = route.params.id as string
   employee.value = await personalStore.fetchEmployeeById(id)
+  if (employee.value?.persona?.id) {
+    academicLoading.value = true
+    academicProfile.value = await personalStore.fetchAcademicProfile(employee.value.persona.id)
+    academicLoading.value = false
+  }
   loading.value = false
+}
+
+const refreshAcademicProfile = async () => {
+  if (!employee.value?.persona?.id) return
+  academicLoading.value = true
+  academicProfile.value = await personalStore.fetchAcademicProfile(employee.value.persona.id)
+  academicLoading.value = false
 }
 
 onMounted(loadEmployee)
@@ -159,7 +190,7 @@ onMounted(loadEmployee)
   padding: 12px;
 }
 
-// Cuando está en modo CV, expandimos a full width
+// Cuando esta en modo CV, expandimos a full width
 .cv-mode {
   max-width: 100% !important;
   padding: 0 !important;
@@ -199,3 +230,5 @@ onMounted(loadEmployee)
   to { opacity: 1; transform: translateY(0); }
 }
 </style>
+
+

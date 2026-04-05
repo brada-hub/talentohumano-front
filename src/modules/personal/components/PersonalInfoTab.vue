@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="row q-col-gutter-lg q-pt-lg">
     
     <!-- LEFT COLUMN (8): DATOS PERSONALES -->
@@ -235,6 +235,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue'
+import { useGeoStore } from 'src/modules/geo/stores/useGeoStore'
 import { usePersonalStore } from 'src/stores/personalStore'
 
 interface Props {
@@ -249,26 +250,80 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits(['updated'])
 const personalStore = usePersonalStore()
+const geoStore = useGeoStore()
 
 const isEditing = ref(false)
 const saving = ref(false)
 const localPersona = ref<any>({})
 const localEmpleado = ref<any>({})
 const fileRef = ref<HTMLInputElement | null>(null)
+const boliviaExpedidos = ref<any[]>([])
+const residenceDepartamentos = ref<any[]>([])
+const residenceCiudades = ref<any[]>([])
 
-// Catálogos
-const expedidos = computed(() => personalStore.catalogs.departamentos.map((d: any) => ({ label: d.nombre, value: d.id_departamento })))
+const expedidos = computed(() => boliviaExpedidos.value.map((d: any) => ({ label: d.nombre, value: d.id_departamento })))
 const sexos = computed(() => personalStore.catalogs.sexos.map((s: any) => ({ label: s.sexo, value: s.id_sexo })))
 const nacionalidades = computed(() => personalStore.catalogs.nacionalidades.map((n: any) => ({ label: n.gentilicio, value: n.id_nacionalidad })))
 const cajas = computed(() => personalStore.catalogs.caja_salud.map((c: any) => ({ label: c.nombre, value: c.id_caja })))
 const pensionesCatalogo = computed(() => personalStore.catalogs.entidad_pensiones.map((p: any) => ({ label: p.nombre, value: p.id_entidad_pensiones })))
 const paisesCatalogo = computed(() => personalStore.catalogs.paises.map((p: any) => ({ label: p.nombre, value: p.id_pais })))
-const deptosCatalogo = computed(() => personalStore.catalogs.departamentos.map((d: any) => ({ label: d.nombre, value: d.id_departamento })))
-const ciudadesCatalogo = computed(() => personalStore.catalogs.ciudades.map((c: any) => ({ label: c.nombre, value: c.id_ciudad })))
+const deptosCatalogo = computed(() => residenceDepartamentos.value.map((d: any) => ({ label: d.nombre, value: d.id_departamento })))
+const ciudadesCatalogo = computed(() => residenceCiudades.value.map((c: any) => ({ label: c.nombre, value: c.id_ciudad })))
+
+const getBoliviaId = () => {
+  const bolivia = personalStore.catalogs.paises.find(
+    (pais: any) => String(pais.nombre || '').trim().toUpperCase() === 'BOLIVIA'
+  )
+
+  return bolivia?.id_pais ? Number(bolivia.id_pais) : null
+}
+
+const loadBoliviaExpedidos = async () => {
+  const boliviaId = getBoliviaId()
+
+  if (!boliviaId) {
+    boliviaExpedidos.value = []
+    return
+  }
+
+  try {
+    boliviaExpedidos.value = await geoStore.fetchDepartamentos(boliviaId)
+  } catch (err) {
+    console.error('Error loading Bolivia departments for expedido', err)
+    boliviaExpedidos.value = []
+  }
+}
+
+const loadResidenceDepartamentos = async (paisId: number | null) => {
+  if (!paisId) {
+    residenceDepartamentos.value = []
+    return
+  }
+
+  try {
+    residenceDepartamentos.value = await geoStore.fetchDepartamentos(Number(paisId))
+  } catch (err) {
+    console.error('Error loading residence departments', err)
+    residenceDepartamentos.value = []
+  }
+}
+
+const loadResidenceCiudades = async (departamentoId: number | null) => {
+  if (!departamentoId) {
+    residenceCiudades.value = []
+    return
+  }
+
+  try {
+    residenceCiudades.value = await geoStore.fetchCiudades(Number(departamentoId))
+  } catch (err) {
+    console.error('Error loading residence cities', err)
+    residenceCiudades.value = []
+  }
+}
 
 const startEdit = () => {
-  // Asegurar que los IDs sean números para que el q-select los mapee correctamente
-  localPersona.value = { 
+  localPersona.value = {
     ...props.persona,
     id_ci_expedido: props.persona.id_ci_expedido ? Number(props.persona.id_ci_expedido) : null,
     id_sexo: props.persona.id_sexo ? Number(props.persona.id_sexo) : null,
@@ -277,7 +332,7 @@ const startEdit = () => {
     id_depto_residencia: props.persona.id_depto_residencia ? Number(props.persona.id_depto_residencia) : null,
     id_ciudad: props.persona.id_ciudad ? Number(props.persona.id_ciudad) : null
   }
-  
+
   localEmpleado.value = {
     id_caja: props.caja?.id_caja || props.persona.empleado?.id_caja || null,
     id_entidad_pensiones: props.pensiones?.id_entidad_pensiones || props.persona.empleado?.id_entidad_pensiones || null,
@@ -287,11 +342,12 @@ const startEdit = () => {
     nro_nua_cua: props.persona.empleado?.nro_nua_cua || ''
   }
 
-  // Convertir IDs del empleado a número también
   if (localEmpleado.value.id_caja) localEmpleado.value.id_caja = Number(localEmpleado.value.id_caja)
   if (localEmpleado.value.id_entidad_pensiones) localEmpleado.value.id_entidad_pensiones = Number(localEmpleado.value.id_entidad_pensiones)
-  
+
   isEditing.value = true
+  void loadResidenceDepartamentos(localPersona.value.id_pais)
+  void loadResidenceCiudades(localPersona.value.id_depto_residencia)
 }
 
 const cancelEdit = () => {
@@ -301,15 +357,15 @@ const cancelEdit = () => {
 const saveEdit = async () => {
   saving.value = true
   try {
-     const payload = {
-       persona: localPersona.value,
-       empleado: localEmpleado.value
-     }
-     const updatedData = await personalStore.updateEmployee(props.empleadoId || props.persona.id_empleado, payload)
-     if (updatedData) {
-       emit('updated', updatedData)
-       isEditing.value = false
-     }
+    const payload = {
+      persona: localPersona.value,
+      empleado: localEmpleado.value
+    }
+    const updatedData = await personalStore.updateEmployee(props.empleadoId || props.persona.id_empleado, payload)
+    if (updatedData) {
+      emit('updated', updatedData)
+      isEditing.value = false
+    }
   } catch (err) {
     console.error(err)
   } finally {
@@ -336,13 +392,48 @@ const calculateAge = (birthday: string) => {
   return Math.abs(ageDate.getUTCFullYear() - 1970)
 }
 
-onMounted(() => {
-  personalStore.fetchCatalogs()
+onMounted(async () => {
+  await personalStore.fetchCatalogs()
+  await loadBoliviaExpedidos()
 })
 
 watch(() => props.persona, (val) => {
   if (!isEditing.value && val) localPersona.value = { ...val }
 }, { immediate: true })
+
+watch(
+  () => localPersona.value.id_pais,
+  async (newPaisId, oldPaisId) => {
+    if (!isEditing.value) return
+
+    const normalizedNew = newPaisId ? Number(newPaisId) : null
+    const normalizedOld = oldPaisId ? Number(oldPaisId) : null
+
+    if (normalizedNew === normalizedOld) return
+
+    localPersona.value.id_depto_residencia = null
+    localPersona.value.id_ciudad = null
+    residenceCiudades.value = []
+
+    await loadResidenceDepartamentos(normalizedNew)
+  }
+)
+
+watch(
+  () => localPersona.value.id_depto_residencia,
+  async (newDeptoId, oldDeptoId) => {
+    if (!isEditing.value) return
+
+    const normalizedNew = newDeptoId ? Number(newDeptoId) : null
+    const normalizedOld = oldDeptoId ? Number(oldDeptoId) : null
+
+    if (normalizedNew === normalizedOld) return
+
+    localPersona.value.id_ciudad = null
+
+    await loadResidenceCiudades(normalizedNew)
+  }
+)
 </script>
 
 <style lang="scss" scoped>

@@ -1,10 +1,10 @@
-<template>
+﻿<template>
   <q-page class="sigeth-page">
     
     <!-- 1. CABECERA -->
     <div class="page-hero">
       <div class="page-hero__left">
-        <div class="page-hero__title">Gestión de Personal</div>
+        <div class="page-hero__title">Gestion de Personal</div>
         <div class="page-hero__subtitle">
           Listado oficial de funcionarios, contratos y legajo digital.
         </div>
@@ -18,7 +18,7 @@
           @click="copiarLinkPublico"
           class="q-mr-sm"
         >
-          <q-tooltip>Copiar Link Público de Registro</q-tooltip>
+          <q-tooltip>Copiar Link Publico de Registro</q-tooltip>
         </q-btn>
         <q-toggle
           v-model="onboardingEnabled"
@@ -110,9 +110,9 @@
         <template v-slot:body-cell-actions="props">
           <q-td :props="props" auto-width>
             <div class="row no-wrap q-gutter-xs">
-              <!-- Botón principal de vista rápida en modal -->
+              <!-- Boton principal de vista rapida en modal -->
               <q-btn unelevated rounded dense color="indigo-7" icon="person_search" @click="openQuickView(props.row, 'info')" class="q-px-sm">
-                <q-tooltip>Vista Rápida</q-tooltip>
+                <q-tooltip>Vista R?pida</q-tooltip>
               </q-btn>
               
               <q-btn-dropdown flat round dense color="grey-7" dropdown-icon="more_vert" no-icon-animation>
@@ -144,7 +144,7 @@
           </q-td>
         </template>
 
-        <!-- Estado vacío -->
+        <!-- Estado vacio -->
         <template v-slot:no-data>
           <div class="full-width row flex-center text-grey-6 q-gutter-sm q-pa-xl">
             <q-icon name="people_outline" size="40px" />
@@ -154,9 +154,9 @@
       </q-table>
     </div>
 
-    <!-- Vista Rápida Modal -->
+    <!-- Boton principal de vista rapida en modal -->
     <q-dialog v-model="quickView.show" maximized persistent>
-      <q-card v-if="quickView.employee" class="bg-grey-1">
+      <q-card v-if="quickView.employee" class="bg-grey-1 quick-view-card">
         <q-toolbar class="bg-gradient-portal text-white q-py-md">
           <q-avatar size="48px" class="q-mr-md shadow-2" style="border: 2px solid rgba(255,255,255,0.3)">
              <img :src="`https://ui-avatars.com/api/?name=${quickView.employee.persona.primer_apellido}+${quickView.employee.persona.nombres}&background=fff&color=6A37A3&bold=true`" />
@@ -179,16 +179,18 @@
           align="justify"
           narrow-indicator
         >
-          <q-tab name="info" label="Información" icon="person" />
+          <q-tab name="info" label="Informacion" icon="person" />
+          <q-tab name="academico" label="Academico" icon="school" />
+          <q-tab name="beneficios" label="Beneficiarios" icon="groups" />
           <q-tab name="cv" label="Hoja de Vida" icon="description" />
           <q-tab name="contracts" label="Contratos" icon="history" />
           <q-tab name="legajo" label="Legajo" icon="folder_shared" />
         </q-tabs>
         <q-separator />
 
-        <q-card-section class="scroll q-pa-none" style="height: calc(100vh - 120px)">
-          <q-tab-panels v-model="quickView.tab" animated class="bg-transparent">
-            <q-tab-panel name="info" class="q-pa-md">
+        <q-card-section class="q-pa-none quick-view-body">
+          <q-tab-panels v-model="quickView.tab" animated class="bg-transparent quick-view-panels">
+            <q-tab-panel name="info" class="q-pa-md quick-view-panel-scroll">
               <PersonalInfoTab 
                 :persona="quickView.employee.persona"
                 :correo_institucional="quickView.employee.correo_institucional"
@@ -200,22 +202,36 @@
               />
             </q-tab-panel>
             
-            <q-tab-panel name="cv" class="q-pa-md">
+            <q-tab-panel name="cv" class="q-pa-none quick-view-cv-panel">
               <PersonalCvTab 
-                :persona="quickView.employee.persona"
+                :persona="buildCvPersona(quickView.employee, quickView.academicProfile)"
                 :cargo="quickView.employee.contrato_activo?.cargo?.nombre_cargo"
                 :area="quickView.employee.contrato_activo?.area?.nombre_area"
                 :base-url="apiBaseUrl"
                 :is-generating-pdf="isGeneratingCv"
+                embedded
                 @download="downloadCvPdf(quickView.employee.persona)"
               />
             </q-tab-panel>
 
-            <q-tab-panel name="contracts" class="q-pa-md">
+            <q-tab-panel name="academico" class="q-pa-md quick-view-panel-scroll">
+              <AcademicoManagerTab
+                :profile="quickView.academicProfile"
+                :loading="quickView.academicLoading"
+                :persona-id="quickView.employee.persona.id"
+                @refresh="refreshQuickViewAcademic"
+              />
+            </q-tab-panel>
+
+            <q-tab-panel name="beneficios" class="q-pa-md quick-view-panel-scroll">
+              <BeneficiariosTab :empleado-id="quickView.employee.id_empleado" />
+            </q-tab-panel>
+
+            <q-tab-panel name="contracts" class="q-pa-md quick-view-panel-scroll">
               <PersonalHistoryTab :contratos="quickView.employee.contratos" />
             </q-tab-panel>
 
-            <q-tab-panel name="legajo" class="q-pa-md">
+            <q-tab-panel name="legajo" class="q-pa-md quick-view-panel-scroll">
               <PersonalLegajoTab :id-empleado="quickView.employee.id_empleado" />
             </q-tab-panel>
           </q-tab-panels>
@@ -238,7 +254,9 @@ import { api } from 'boot/axios'
 
 // Sub-componentes para el modal
 import PersonalInfoTab from '../modules/personal/components/PersonalInfoTab.vue'
-import PersonalCvTab from '../modules/personal/components/PersonalCvTab.vue'
+import PersonalCvTab from '../modules/personal/components/PersonalCvTabV2.vue'
+import AcademicoManagerTab from 'src/modules/academico/components/AcademicoManagerTab.vue'
+import BeneficiariosTab from 'src/modules/beneficios/components/BeneficiariosTab.vue'
 import PersonalHistoryTab from '../modules/personal/components/PersonalHistoryTab.vue'
 import PersonalLegajoTab from '../modules/personal/components/PersonalLegajoTab.vue'
 
@@ -250,12 +268,14 @@ const loading = computed(() => personalStore.loading)
 const employees = computed(() => personalStore.employees)
 const onboardingEnabled = ref(false)
 
-// Estado para la vista rápida
+// Estado para la vista rapida
 const quickView = ref({
   show: false,
   tab: 'info',
   employee: null as any,
-  loading: false
+  loading: false,
+  academicProfile: null as any,
+  academicLoading: false
 })
 const isGeneratingCv = ref(false)
 
@@ -284,7 +304,7 @@ const togglePortal = async (val: boolean) => {
     await api.post('/onboarding/toggle', { enabled: val })
     $q.notify({
       type: val ? 'positive' : 'warning',
-      message: val ? '¡Portal de Onboarding Habilitado!' : '¡Portal de Onboarding DESACTIVADO!',
+      message: val ? 'Portal de Onboarding habilitado' : 'Portal de Onboarding desactivado',
       position: 'top'
     })
   } catch {
@@ -298,28 +318,64 @@ const copiarLinkPublico = async () => {
   await copyToClipboard(url)
   $q.notify({
     type: 'positive',
-    message: 'Link público copiado al portapapeles',
+    message: 'Link p?blico copiado al portapapeles',
     icon: 'content_paste'
   })
 }
 
 const openQuickView = async (employee: any, tab: string = 'info') => {
-  // Mostramos lo que tenemos (básico) mientras carga el resto
+  // Mostramos lo basico mientras carga el resto
   quickView.value.employee = JSON.parse(JSON.stringify(employee))
   quickView.value.tab = tab
+  quickView.value.academicProfile = null
+  quickView.value.academicLoading = false
   quickView.value.show = true
   quickView.value.loading = true
   
-  // Cargamos el detalle completo para que las pestañas de CV e Historial tengan toda la info
+  // Cargamos el detalle completo para que las pesta?as de CV e historial tengan toda la info
   try {
     const details = await personalStore.fetchEmployeeById(employee.id_empleado)
     if (details) {
       quickView.value.employee = details
+      if (details.persona?.id) {
+        quickView.value.academicLoading = true
+        quickView.value.academicProfile = await personalStore.fetchAcademicProfile(details.persona.id)
+        quickView.value.academicLoading = false
+      }
     }
   } catch (err) {
     console.error('Error fetching full details', err)
+    quickView.value.academicLoading = false
   } finally {
     quickView.value.loading = false
+  }
+}
+
+const refreshQuickViewAcademic = async () => {
+  const personaId = quickView.value.employee?.persona?.id
+  if (!personaId) return
+  quickView.value.academicLoading = true
+  quickView.value.academicProfile = await personalStore.fetchAcademicProfile(personaId)
+  quickView.value.academicLoading = false
+}
+
+const buildCvPersona = (employee: any, academicProfile: any) => {
+  const persona = employee?.persona || {}
+
+  if (!academicProfile) {
+    return persona
+  }
+
+  return {
+    ...persona,
+    formacion_pregrado: academicProfile.formacion_pregrado ?? persona.formacion_pregrado ?? [],
+    formacion_postgrado: academicProfile.formacion_postgrado ?? persona.formacion_postgrado ?? [],
+    experiencia_docente: academicProfile.experiencia_docente ?? persona.experiencia_docente ?? [],
+    experiencia_profesional: academicProfile.experiencia_profesional ?? persona.experiencia_profesional ?? [],
+    capacitaciones: academicProfile.capacitaciones ?? persona.capacitaciones ?? [],
+    produccion_intelectual: academicProfile.produccion_intelectual ?? persona.produccion_intelectual ?? [],
+    reconocimientos: academicProfile.reconocimientos ?? persona.reconocimientos ?? [],
+    idiomas: academicProfile.idiomas ?? persona.idiomas ?? [],
   }
 }
 
@@ -366,8 +422,8 @@ const generarOnboarding = async (idPersona: string) => {
     await copyToClipboard(data.url)
     $q.notify({
       type: 'positive',
-      message: '¡Link de registro generado y copiado al portapapeles!',
-      caption: 'Ya puedes enviárselo al funcionario.',
+      message: 'Link de registro generado y copiado al portapapeles',
+      caption: 'Ya puedes envi?rselo al funcionario.',
       icon: 'content_paste'
     })
   } catch {
@@ -379,12 +435,12 @@ const generarOnboarding = async (idPersona: string) => {
 
 const confirmDelete = (row: any) => {
   $q.dialog({
-    title: 'Confirmar Eliminación',
-    message: `¿Estás seguro de eliminar a ${row.persona.nombres}?`,
+    title: 'Confirmar Eliminaci?n',
+    message: `?Est?s seguro de eliminar a ${row.persona.nombres}?`,
     cancel: true,
     persistent: true
   }).onOk(() => {
-    // Lógica de eliminación...
+    // L?gica de eliminaci?n...
   })
 }
 
@@ -413,5 +469,42 @@ onMounted(() => {
 .search-input :deep(.q-field__input) {
   color: var(--text-primary) !important;
 }
+
+.quick-view-card {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.quick-view-body {
+  height: calc(100vh - 120px);
+  overflow: hidden;
+}
+
+.quick-view-panels {
+  height: 100%;
+  overflow: hidden;
+}
+
+.quick-view-panels :deep(.q-panel) {
+  height: 100%;
+}
+
+.quick-view-panels :deep(.q-tab-panel) {
+  box-sizing: border-box;
+}
+
+.quick-view-panel-scroll {
+  height: 100%;
+  overflow: auto;
+}
+
+.quick-view-cv-panel {
+  height: 100%;
+  overflow: hidden;
+}
 </style>
+
+
 

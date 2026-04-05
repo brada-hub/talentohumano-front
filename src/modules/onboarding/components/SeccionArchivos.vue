@@ -4,7 +4,7 @@
     <q-card-section class="bg-unitepc-sso text-white row items-center q-pa-xl">
       <q-avatar size="56px" font-size="28px" color="white" text-color="blue-grey-10" icon="cloud_upload" class="q-mr-md shadow-2" />
       <div>
-        <div class="text-h5 text-weight-bolder tracking-tight">5. Documentación Firmada / Digital</div>
+        <div class="text-h5 text-weight-bolder tracking-tight">5. Documentacion Firmada / Digital</div>
         <div class="text-caption opacity-80 uppercase tracking-widest text-weight-medium">Carga de Documentos Identitarios</div>
       </div>
       <q-space />
@@ -18,12 +18,12 @@
           <div class="bg-blue-grey-1 q-pa-lg rounded-24 border-light shadow-1">
              <div class="row items-center q-mb-md">
                <q-icon name="info" color="blue-grey-8" size="sm" class="q-mr-sm" />
-               <div class="text-subtitle2 text-weight-bold text-blue-grey-9 uppercase">Requisitos de Digitalización</div>
+               <div class="text-subtitle2 text-weight-bold text-blue-grey-9 uppercase">Requisitos de Digitalizacion</div>
              </div>
              <p class="text-caption text-blue-grey-7 line-height-relaxed">
-               Asegúrese de que el documento esté en formato <strong>PDF</strong> o <strong>Imagen de alta calidad</strong>. 
-               El escaneo debe mostrar ambas caras de la Cédula de Identidad de forma legible. 
-               (Máximo 5MB).
+               Asegurese de que el documento este en formato <strong>PDF</strong> o <strong>Imagen de alta calidad</strong>. 
+               El escaneo debe mostrar ambas caras de la Cedula de Identidad de forma legible. 
+               (Maximo 1 MB).
              </p>
              <q-btn flat dense color="blue-grey-8" label="Ver ejemplo de escaneo" icon="visibility" class="text-weight-bold" size="sm" />
           </div>
@@ -34,8 +34,8 @@
           <div class="column q-gutter-y-md">
             <q-file 
               v-model="archivos.ci_escaneado" 
-              @update:model-value="save"
-              label="Cédula de Identidad Escaneada *" 
+              @update:model-value="onCiFileChange"
+              label="Cedula de Identidad Escaneada *" 
               outlined 
               rounded
               class="input-premium-dark"
@@ -54,7 +54,7 @@
 
             <div v-if="archivos.ci_escaneado" class="flex items-center q-pa-md bg-green-1 rounded-16 border-green-2 animate-bounce-soft">
               <q-icon name="task_alt" color="positive" size="sm" class="q-mr-md" />
-              <div class="text-caption text-positive font-bold uppercase tracking-widest">Documento Listo para Envío</div>
+              <div class="text-caption text-positive font-bold uppercase tracking-widest">Documento Listo para Envio</div>
             </div>
           </div>
         </div>
@@ -65,10 +65,30 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { Notify } from 'quasar'
 import { useOnboardingStore } from 'src/stores/onboardingStore'
+import { optimizeUploadFile } from 'src/shared/utils/uploadOptimizer'
 
 const onboardingStore = useOnboardingStore()
 const archivos = computed(() => onboardingStore.archivos)
+
+const onCiFileChange = async (file: File | null) => {
+  const result = await optimizeUploadFile(file)
+
+  if (result.error) {
+    onboardingStore.archivos.ci_escaneado = null
+    Notify.create({ color: 'negative', message: result.error })
+    return
+  }
+
+  onboardingStore.archivos.ci_escaneado = result.file
+
+  if (result.optimized) {
+    Notify.create({ color: 'info', message: 'La imagen fue optimizada antes de guardarse.' })
+  }
+
+  save()
+}
 
 const save = () => {
   onboardingStore.saveToLocal()

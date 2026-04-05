@@ -189,11 +189,10 @@ const onSubmit = async () => {
       resultado.value = 'encontrado'
       Notify.create({ 
         color: 'positive', 
-        message: `Expediente encontrado para CI ${form.value.ci}. Redirigiendo...`, 
+        message: `Expediente encontrado para CI ${form.value.ci}. Puedes continuar cuando quieras.`, 
         icon: 'check_circle',
         timeout: 1500 
       })
-      setTimeout(() => router.push('/portal/registro'), 1500)
     } else if (resp.success && !resp.datos_precargados) {
       resultado.value = 'nuevo'
     }

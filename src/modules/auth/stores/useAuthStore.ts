@@ -38,6 +38,11 @@ export const useAuthStore = defineStore('auth', {
     async logout() {
       try {
         await api.post('/v1/auth/logout');
+      } catch (error: any) {
+        const status = error?.response?.status;
+        if (status !== 401 && status !== 419) {
+          throw error;
+        }
       } finally {
         this.token = null;
         this.user = null;
