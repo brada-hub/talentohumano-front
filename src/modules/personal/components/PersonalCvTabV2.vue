@@ -420,7 +420,7 @@ const generationDate = computed(() => formatDate(new Date().toISOString(), '---'
 const isPdfPreview = computed(() => currentFileMime.value.includes('pdf'))
 const pdfPreviewUrl = computed(() => {
   if (!currentFileUrl.value) return ''
-  return `${currentFileUrl.value}#view=FitH&zoom=page-width`
+  return `${currentFileUrl.value}#toolbar=0&navpanes=0&scrollbar=1&view=Fit&zoom=page-fit`
 })
 const qrUrl = computed(() => buildFakeQrDataUrl(`${window.location.origin}/#/personal/${props.persona?.id || ''}`))
 
@@ -930,6 +930,7 @@ onBeforeUnmount(() => {
 .cv-preview-content {
   flex: 1;
   min-height: 0;
+  background: #0f172a;
 }
 
 .cv-preview-frame,

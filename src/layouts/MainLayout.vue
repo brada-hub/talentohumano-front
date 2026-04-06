@@ -129,6 +129,7 @@ const toggleLeftDrawer = () => {
 const navItems = [
   { label: 'Inicio', icon: 'dashboard', path: '/', requiresAdmin: false },
   { label: 'Personas', icon: 'badge', path: '/personal', requiresAdmin: false },
+  { label: 'Recordatorios', icon: 'notifications_active', path: '/recordatorios', requiresAdmin: false },
   { label: 'Catálogos', icon: 'folder_open', path: '/geo', requiresAdmin: true },
   { label: 'SSO & Accesos', icon: 'admin_panel_settings', path: '/sso', requiresAdmin: true },
   { label: 'Mi Perfil', icon: 'account_circle', path: '/perfil', requiresAdmin: false },
