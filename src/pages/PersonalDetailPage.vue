@@ -80,7 +80,11 @@
         </q-tab-panel>
 
         <q-tab-panel name="contracts" class="q-pa-none">
-          <PersonalHistoryTab :contratos="employee.contratos" />
+          <PersonalHistoryTab
+            :contratos="employee.contratos || []"
+            :empleado-id="employee.id_empleado"
+            :empleado-nombre="`${employee.persona.primer_apellido} ${employee.persona.nombres}`"
+          />
         </q-tab-panel>
 
       </q-tab-panels>

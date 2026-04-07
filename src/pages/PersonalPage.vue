@@ -228,7 +228,11 @@
             </q-tab-panel>
 
             <q-tab-panel name="contracts" class="q-pa-md quick-view-panel-scroll">
-              <PersonalHistoryTab :contratos="quickView.employee.contratos" />
+              <PersonalHistoryTab
+                :contratos="quickView.employee.contratos || []"
+                :empleado-id="quickView.employee.id_empleado"
+                :empleado-nombre="`${quickView.employee.persona.primer_apellido} ${quickView.employee.persona.nombres}`"
+              />
             </q-tab-panel>
 
             <q-tab-panel name="legajo" class="q-pa-md quick-view-panel-scroll">
