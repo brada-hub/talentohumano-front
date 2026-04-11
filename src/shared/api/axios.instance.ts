@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: process.env.DEV ? 'http://localhost:8000/api' : 'https://api.sigeth.xpertiaplus.com/api',
   timeout: 10000,
 });
 
