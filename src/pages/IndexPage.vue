@@ -209,6 +209,8 @@ const goToSystem = (url: string) => {
 
   if (token && user) {
     const userStr = btoa(unescape(encodeURIComponent(JSON.stringify(user))));
+    const tokenParam = encodeURIComponent(token);
+    const userParam = encodeURIComponent(userStr);
     const isSispo = url.toLowerCase().includes(':9001') || url.toLowerCase().includes('sispo');
     const isSigva = url.toLowerCase().includes(':9002') || url.toLowerCase().includes('sigva');
     
@@ -216,11 +218,11 @@ const goToSystem = (url: string) => {
     const separator = url.includes('?') ? '&' : '?';
 
     if (isSispo) {
-      finalUrl = `${url}/#/login?token=${token}&user=${userStr}`;
+      finalUrl = `${url}/#/login?token=${tokenParam}&user=${userParam}`;
     } else if (isSigva) {
-      finalUrl = `${url}/admin/login?token=${token}&user=${userStr}`;
+      finalUrl = `${url}/admin/login?token=${tokenParam}&user=${userParam}`;
     } else {
-      finalUrl = `${url}${separator}token=${token}&user=${userStr}`;
+      finalUrl = `${url}${separator}token=${tokenParam}&user=${userParam}`;
     }
     
     window.open(finalUrl, '_blank');

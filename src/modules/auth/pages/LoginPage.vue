@@ -125,7 +125,7 @@ const onSubmit = async () => {
       const tokenStr = authStore.token;
       const userStr = btoa(unescape(encodeURIComponent(JSON.stringify(authStore.user))));
       const separator = returnTo.includes('?') ? '&' : '?';
-      window.location.href = `${returnTo}${separator}token=${tokenStr}&user=${userStr}`;
+      window.location.href = `${returnTo}${separator}token=${encodeURIComponent(tokenStr)}&user=${encodeURIComponent(userStr)}`;
     } else {
       router.push('/')
     }
