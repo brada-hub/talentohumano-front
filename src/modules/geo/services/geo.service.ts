@@ -71,6 +71,37 @@ export const geoService = {
     return response.data.data
   },
 
+  async saveSede(sede: any): Promise<any> {
+    if (sede.id_sede) {
+      const response = await api.put(`/v1/talento-humano/sedes/${sede.id_sede}`, sede)
+      return response.data.data
+    }
+    const response = await api.post('/v1/talento-humano/sedes', sede)
+    return response.data.data
+  },
+
+  async deleteSede(id: number): Promise<void> {
+    await api.delete(`/v1/talento-humano/sedes/${id}`)
+  },
+
+  async getCampus(): Promise<any[]> {
+    const response = await api.get('/v1/talento-humano/campus')
+    return response.data.data
+  },
+
+  async saveCampus(campus: any): Promise<any> {
+    if (campus.id_campus) {
+      const response = await api.put(`/v1/talento-humano/campus/${campus.id_campus}`, campus)
+      return response.data.data
+    }
+    const response = await api.post('/v1/talento-humano/campus', campus)
+    return response.data.data
+  },
+
+  async deleteCampus(id: number): Promise<void> {
+    await api.delete(`/v1/talento-humano/campus/${id}`)
+  },
+
   // Clear cache
   clearCache() {
     paisesCache = null

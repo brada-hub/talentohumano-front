@@ -1,127 +1,172 @@
 <template>
   <q-page class="sigeth-page">
-    <div class="page-hero">
-      <div class="page-hero__left">
-        <div class="page-hero__title">Recordatorios</div>
-        <div class="page-hero__subtitle">
-          Cumpleaños, aniversarios laborales, contratos por vencer y seguimiento de envíos.
+    <!-- Header Hero -->
+    <div class="row items-center q-mb-lg animate-fade-in">
+      <div class="col">
+        <div class="row items-center q-gutter-x-md">
+          <q-icon name="notifications_active" size="38px" class="text-primary icon-glow" />
+          <div class="column">
+            <h1 class="text-h5 text-weight-bolder brand-text q-my-none">Recordatorios</h1>
+            <p class="text-caption text-grey-7 q-mb-none font-medium">Cumpleaños, aniversarios laborales y seguimiento de contratos</p>
+          </div>
         </div>
       </div>
     </div>
 
-    <q-card flat bordered class="filters-card q-mt-md">
-      <q-card-section class="filters-card__section">
-        <div class="filters-card__header">
-          <div>
-            <div class="filters-card__title">Filtros</div>
-            <div class="filters-card__subtitle">
-              Refina la agenda por mes, sede o área para revisar eventos específicos.
+    <!-- Filters Section -->
+    <div class="q-gutter-y-lg animate-slide-up">
+      <q-card class="glass-card shadow-soft rounded-24 overflow-hidden border-glass">
+        <q-card-section class="q-pa-md">
+          <div class="row items-center justify-between q-mb-sm">
+            <div class="column">
+              <div class="text-subtitle2 font-bold text-indigo-9">Filtros de Búsqueda</div>
+              <div class="text-caption text-grey-7" style="font-size: 11px">Refina la agenda por mes, sede o área</div>
+            </div>
+            <div class="row q-gutter-x-sm">
+              <q-btn
+                label="Aplicar"
+                icon="search"
+                dense
+                class="btn-gradient-portal rounded-12 q-px-md text-white shadow-soft"
+                style="font-size: 11px"
+                :loading="store.loading"
+                @click="applyFilters"
+              />
+              <q-btn
+                flat
+                dense
+                color="primary"
+                icon="restart_alt"
+                label="Limpiar"
+                class="rounded-12"
+                style="font-size: 11px"
+                :disable="store.loading"
+                @click="resetFilters"
+              />
             </div>
           </div>
-          <div class="filters-card__actions">
-            <q-btn
-              unelevated
-              color="primary"
-              icon="search"
-              label="Aplicar"
-              :loading="store.loading"
-              @click="applyFilters"
-            />
-            <q-btn
-              flat
-              color="primary"
-              icon="restart_alt"
-              label="Limpiar"
-              :disable="store.loading"
-              @click="resetFilters"
-            />
-          </div>
-        </div>
 
-        <div class="row q-col-gutter-md q-mt-sm">
-          <div class="col-12 col-md-4">
-            <q-select
-              v-model="localFilters.mes"
-              label="Mes de referencia"
-              outlined
-              emit-value
-              map-options
-              :options="catalogos.meses"
-            />
+          <div class="row q-col-gutter-sm">
+            <div class="col-12 col-md-4">
+              <q-select
+                v-model="localFilters.mes"
+                label="Mes"
+                outlined
+                dense
+                emit-value
+                map-options
+                :options="catalogos.meses"
+                class="modern-input"
+              />
+            </div>
+            <div class="col-12 col-md-4">
+              <q-select
+                v-model="localFilters.id_sede"
+                label="Sede"
+                outlined
+                dense
+                emit-value
+                map-options
+                clearable
+                :options="catalogos.sedes"
+                class="modern-input"
+              />
+            </div>
+            <div class="col-12 col-md-4">
+              <q-select
+                v-model="localFilters.id_area"
+                label="Área"
+                outlined
+                dense
+                emit-value
+                map-options
+                clearable
+                :options="catalogos.areas"
+                class="modern-input"
+              />
+            </div>
           </div>
-          <div class="col-12 col-md-4">
-            <q-select
-              v-model="localFilters.id_sede"
-              label="Sede"
-              outlined
-              emit-value
-              map-options
-              clearable
-              :options="catalogos.sedes"
-            />
-          </div>
-          <div class="col-12 col-md-4">
-            <q-select
-              v-model="localFilters.id_area"
-              label="Área"
-              outlined
-              emit-value
-              map-options
-              clearable
-              :options="catalogos.areas"
-            />
-          </div>
-        </div>
-      </q-card-section>
-    </q-card>
+        </q-card-section>
+      </q-card>
+    </div>
 
-    <div class="row q-col-gutter-md q-mt-md">
+    <div class="row q-col-gutter-sm q-mt-sm animate-slide-up" style="animation-delay: 0.1s">
       <div class="col-12 col-sm-6 col-lg-3">
-        <q-card flat bordered class="summary-card">
-          <q-card-section>
-            <div class="summary-card__label">Cumpleaños de hoy</div>
-            <div class="summary-card__value">{{ resumen.cumpleanios.hoy.length }}</div>
+        <q-card class="glass-card shadow-soft rounded-24 overflow-hidden border-glass bg-gradient-purple-light">
+          <q-card-section class="q-pa-md">
+            <div class="row items-center justify-between">
+              <div class="column">
+                <div class="text-caption text-indigo-9 font-bold text-uppercase" style="font-size: 9px">Cumpleaños Hoy</div>
+                <div class="text-h5 font-black text-indigo-9">{{ resumen.cumpleanios.hoy.length }}</div>
+              </div>
+              <q-icon name="cake" size="30px" class="opacity-40 text-indigo" />
+            </div>
           </q-card-section>
         </q-card>
       </div>
 
       <div class="col-12 col-sm-6 col-lg-3">
-        <q-card flat bordered class="summary-card">
-          <q-card-section>
-            <div class="summary-card__label">Cumpleaños del mes</div>
-            <div class="summary-card__value">{{ resumen.cumpleanios.mes.length }}</div>
+        <q-card class="glass-card shadow-soft rounded-24 overflow-hidden border-glass bg-gradient-brand-light">
+          <q-card-section class="q-pa-md">
+            <div class="row items-center justify-between">
+              <div class="column">
+                <div class="text-caption text-primary font-bold text-uppercase" style="font-size: 9px">Cumpleaños Mes</div>
+                <div class="text-h5 font-black text-primary">{{ resumen.cumpleanios.mes.length }}</div>
+              </div>
+              <q-icon name="calendar_month" size="30px" class="opacity-40 text-primary" />
+            </div>
           </q-card-section>
         </q-card>
       </div>
 
       <div class="col-12 col-sm-6 col-lg-3">
-        <q-card flat bordered class="summary-card">
-          <q-card-section>
-            <div class="summary-card__label">Aniversarios del mes</div>
-            <div class="summary-card__value">{{ resumen.aniversarios.mes.length }}</div>
+        <q-card class="glass-card shadow-soft rounded-24 overflow-hidden border-glass bg-gradient-success-light">
+          <q-card-section class="q-pa-md">
+            <div class="row items-center justify-between">
+              <div class="column">
+                <div class="text-caption text-green-9 font-bold text-uppercase" style="font-size: 9px">Aniversarios Mes</div>
+                <div class="text-h5 font-black text-green-9">{{ resumen.aniversarios.mes.length }}</div>
+              </div>
+              <q-icon name="celebration" size="30px" class="opacity-40 text-green" />
+            </div>
           </q-card-section>
         </q-card>
       </div>
 
       <div class="col-12 col-sm-6 col-lg-3">
-        <q-card flat bordered class="summary-card">
-          <q-card-section>
-            <div class="summary-card__label">Contratos del mes</div>
-            <div class="summary-card__value">{{ resumen.contratos_por_vencer.mes.length }}</div>
+        <q-card class="glass-card shadow-soft rounded-24 overflow-hidden border-glass bg-gradient-warning-light">
+          <q-card-section class="q-pa-md">
+            <div class="row items-center justify-between">
+              <div class="column">
+                <div class="text-caption text-orange-9 font-bold text-uppercase" style="font-size: 9px">Contratos Vencer</div>
+                <div class="text-h5 font-black text-orange-9">{{ resumen.contratos_por_vencer.mes.length }}</div>
+              </div>
+              <q-icon name="event_busy" size="30px" class="opacity-40 text-orange" />
+            </div>
           </q-card-section>
         </q-card>
       </div>
     </div>
 
-    <q-card flat bordered class="q-mt-lg">
-      <q-tabs v-model="tab" align="left" class="text-primary">
-        <q-tab name="cumpleanios" icon="cake" label="Cumpleaños" />
-        <q-tab name="aniversarios" icon="celebration" label="Aniversarios" />
-        <q-tab name="contratos" icon="event_busy" label="Contratos por vencer" />
-        <q-tab name="enviados" icon="mail" label="Historial de envíos" />
-      </q-tabs>
+    <div class="q-gutter-y-lg q-mt-lg animate-slide-up" style="animation-delay: 0.2s">
+      <q-card class="glass-card shadow-soft rounded-24 overflow-hidden border-glass">
+        <q-tabs
+          v-model="tab"
+          class="text-grey-7 bg-grey-1 q-pa-sm"
+          active-color="white"
+          indicator-color="transparent"
+          active-class="bg-gradient-portal shadow-md text-white font-bold"
+          align="left"
+          no-caps
+          :breakpoint="0"
+        >
+          <q-tab name="cumpleanios" icon="cake" label="Cumpleaños" class="rounded-16 q-mx-xs transition-hover text-weight-bold" style="min-height: 48px" />
+          <q-tab name="aniversarios" icon="celebration" label="Aniversarios" class="rounded-16 q-mx-xs transition-hover text-weight-bold" style="min-height: 48px" />
+          <q-tab name="contratos" icon="event_busy" label="Contratos" class="rounded-16 q-mx-xs transition-hover text-weight-bold" style="min-height: 48px" />
+          <q-tab name="enviados" icon="mail" label="Historial" class="rounded-16 q-mx-xs transition-hover text-weight-bold" style="min-height: 48px" />
+        </q-tabs>
 
-      <q-separator />
+        <q-separator />
 
       <q-tab-panels v-model="tab" animated>
         <q-tab-panel name="cumpleanios">
@@ -328,7 +373,8 @@
         </q-tab-panel>
       </q-tab-panels>
     </q-card>
-  </q-page>
+  </div>
+</q-page>
 </template>
 
 <script setup lang="ts">
@@ -562,221 +608,154 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
-.filters-card,
-.summary-card,
-.recordatorio-card,
-.history-card {
-  border-radius: 18px;
+<style scoped lang="scss">
+.border-glass {
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
-.filters-card__section {
-  padding: 18px 20px;
+.glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
 }
 
-.filters-card__header {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: flex-start;
+.brand-text {
+  background: linear-gradient(90deg, #6A37A3 0%, #00A99D 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -1px;
 }
 
-.filters-card__title {
-  font-size: 18px;
-  font-weight: 800;
-  color: #1e293b;
+.icon-glow {
+  filter: drop-shadow(0 0 10px rgba(106, 55, 163, 0.3));
 }
 
-.filters-card__subtitle {
-  margin-top: 4px;
-  font-size: 13px;
-  color: #64748b;
+.font-bold { font-weight: 700; }
+.font-medium { font-weight: 500; }
+.font-black { font-weight: 900; }
+
+.rounded-12 { border-radius: 12px !important; }
+.rounded-16 { border-radius: 16px !important; }
+.rounded-24 { border-radius: 24px !important; }
+
+.shadow-soft { box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+
+/* Custom Gradients for Summary Cards */
+.bg-gradient-purple-light { background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); }
+.bg-gradient-brand-light { background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%); }
+.bg-gradient-success-light { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); }
+.bg-gradient-warning-light { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); }
+
+/* Para forzar el ícono arriba y centrado en las pestañas */
+:deep(.q-tab__content) {
+  flex-direction: column !important;
+  padding: 12px 24px;
 }
 
-.filters-card__actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.summary-card {
-  background: linear-gradient(180deg, #ffffff 0%, #faf7ff 100%);
-}
-
-.summary-card__label {
-  color: #64748b;
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.summary-card__value {
-  margin-top: 8px;
-  color: #6a37a3;
-  font-size: 34px;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.recordatorio-card {
-  height: 100%;
-  border: 1px solid #e9e3f4;
-  background: #fff;
-  overflow: hidden;
-}
-
-.recordatorio-card__header {
-  padding: 18px 18px 14px;
-  border-bottom: 1px solid #f1edf7;
-}
-
-.recordatorio-card__title {
-  font-size: 16px;
-  font-weight: 800;
-  color: #1e293b;
-}
-
-.recordatorio-card__subtitle {
-  font-size: 12px;
-  color: #64748b;
-}
-
-.recordatorio-card__list {
-  display: flex;
-  flex-direction: column;
-}
-
-.recordatorio-item {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 18px;
-  border-top: 1px solid #f8f4fc;
-}
-
-.recordatorio-item__body {
-  min-width: 0;
-}
-
-.recordatorio-item__name {
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.recordatorio-item__caption,
-.recordatorio-item__meta {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #64748b;
-}
-
-.recordatorio-item__badge {
-  align-self: center;
-  white-space: nowrap;
-  background: #f3eff8;
-  color: #6a37a3;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 8px 12px;
-  border-radius: 999px;
-}
-
-.recordatorio-item__action {
-  margin-top: 10px;
-  padding: 8px 12px;
-  border: 0;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #6a37a3 0%, #22c1d6 100%);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.recordatorio-item__action:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.recordatorio-card__empty {
-  padding: 36px 20px;
-  color: #94a3b8;
-  text-align: center;
-  font-size: 13px;
-}
-
-.history-card__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
-
-.history-card__title {
-  font-size: 18px;
-  font-weight: 800;
-  color: #1e293b;
-}
-
-.history-card__subtitle {
-  margin-top: 4px;
-  font-size: 13px;
-  color: #64748b;
-}
-
-.history-item {
-  display: flex;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 18px 20px;
-  border-top: 1px solid #f1edf7;
-}
-
-.history-item__body {
-  min-width: 0;
-}
-
-.history-item__title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.history-item__meta {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #64748b;
-}
-
-.history-item__error {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #dc2626;
-}
-
-.history-item__side {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  min-width: 120px;
-}
-
-.history-item__type,
-.history-item__channel {
-  font-size: 12px;
-  color: #64748b;
-}
-
-@media (max-width: 1023px) {
-  .filters-card__header,
-  .recordatorio-item,
-  .history-item {
-    flex-direction: column;
+.modern-input {
+  :deep(.q-field__control) {
+    border-radius: 12px !important;
+    background: rgba(244, 246, 248, 0.8) !important;
   }
+}
 
-  .recordatorio-item__badge,
-  .history-item__side {
-    align-self: flex-start;
+/* History Styles */
+.history-item {
+  transition: all 0.3s ease;
+  &:hover {
+    background: rgba(106, 55, 163, 0.03);
+  }
+}
+
+// Animations
+.animate-fade-in {
+  animation: fadeIn 0.8s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Scoped adjustments for components inside defineComponent */
+:deep(.recordatorio-card) {
+  border-radius: 16px;
+  border: 1px solid rgba(106, 55, 163, 0.1);
+  ov  .recordatorio-card__header {
+    background: #f8fafc;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  
+  .recordatorio-card__title {
+    font-weight: 800;
+    color: #1e293b;
+    font-size: 13px;
+  }
+  
+  .recordatorio-card__subtitle {
+    font-size: 9px;
+    color: #64748b;
+  }
+  
+  .recordatorio-item {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    background: white;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: #fdfbff;
+    }
+    
+    .recordatorio-item__name {
+      font-weight: 700;
+      color: #0f172a;
+      font-size: 12px;
+    }
+    
+    .recordatorio-item__caption {
+      font-size: 10px;
+      line-height: 1.2;
+    }
+
+    .recordatorio-item__meta {
+      font-size: 10px;
+    }
+
+    .recordatorio-item__badge {
+      background: #f1f5f9;
+      padding: 1px 8px;
+      border-radius: 20px;
+      font-size: 9px;
+      font-weight: 800;
+      color: #64748b;
+    }
+
+    .recordatorio-item__action {
+      margin-top: 4px;
+      width: 100%;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #6A37A3 0%, #00A99D 100%);
+      color: white;
+      padding: 3px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 10px;
+      transition: transform 0.2s;
+      &:hover { transform: translateY(-2px); }
+    }
   }
 }
 </style>

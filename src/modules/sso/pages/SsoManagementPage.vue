@@ -1,13 +1,13 @@
 <template>
   <q-page class="q-pa-lg">
     <!-- Header Hero -->
-    <div class="row items-center q-mb-xl animate-fade-in">
+    <div class="row items-center q-mb-lg animate-fade-in">
       <div class="col">
         <div class="row items-center q-gutter-x-md">
-          <q-icon name="admin_panel_settings" size="48px" class="text-primary icon-glow" />
+          <q-icon name="admin_panel_settings" size="38px" class="text-primary icon-glow" />
           <div class="column">
-            <h1 class="text-h4 text-weight-bolder brand-text q-my-none">Gestión SSO & Accesos</h1>
-            <p class="text-subtitle1 text-grey-7 q-mb-none font-medium">Control unificado de SIGETH, SISPO y SIGVA</p>
+            <h1 class="text-h5 text-weight-bolder brand-text q-my-none">Gestión SSO & Accesos</h1>
+            <p class="text-caption text-grey-7 q-mb-none font-medium">Control unificado de SIGETH, SISPO y SIGVA</p>
           </div>
         </div>
       </div>
@@ -27,6 +27,13 @@
           class="btn-gradient-portal rounded-12 q-px-lg shadow-lift shadow-indigo" 
           @click="openRoleDialog()"
         />
+        <q-btn 
+          v-if="tab === 'users'"
+          label="Nuevo Usuario" 
+          icon="person_add" 
+          class="btn-gradient-portal rounded-12 q-px-lg shadow-lift shadow-indigo" 
+          @click="openNewUserDialog()"
+        />
       </div>
     </div>
 
@@ -35,34 +42,35 @@
       <q-card class="glass-card shadow-soft rounded-24 overflow-hidden border-glass">
         <q-tabs
           v-model="tab"
-          dense
-          class="text-grey-7 bg-grey-1 q-pa-sm"
-          active-color="primary"
-          indicator-color="primary"
+          class="text-grey-7 bg-grey-1 q-pa-md"
+          active-color="white"
+          indicator-color="transparent"
+          active-class="bg-gradient-portal shadow-md text-white font-bold"
           align="left"
-          narrow-indicator
+          no-caps
+          dense
           :breakpoint="0"
         >
-          <q-tab name="systems" icon="apps" label="Aplicaciones" class="rounded-12 q-mx-xs transition-hover" />
-          <q-tab name="roles" icon="verified_user" label="Roles y Permisos" class="rounded-12 q-mx-xs transition-hover" />
-          <q-tab name="users" icon="group" label="Asignación a Usuarios" class="rounded-12 q-mx-xs transition-hover" />
+          <q-tab name="systems" icon="apps" label="Aplicaciones" class="rounded-12 q-mx-xs q-px-lg transition-hover text-weight-bold" no-caps />
+          <q-tab name="roles" icon="admin_panel_settings" label="Roles y Permisos" class="rounded-12 q-mx-xs q-px-lg transition-hover text-weight-bold" no-caps />
+          <q-tab name="users" icon="manage_accounts" label="Asignación a Usuarios" class="rounded-12 q-mx-xs q-px-lg transition-hover text-weight-bold" no-caps />
         </q-tabs>
 
         <q-separator />
 
         <q-tab-panels v-model="tab" animated class="bg-transparent">
           <!-- Systems Panel -->
-          <q-tab-panel name="systems" class="q-pa-xl">
+          <q-tab-panel name="systems" class="q-pa-lg">
             <div class="row q-col-gutter-lg">
               <div v-for="sys in ssoStore.systems" :key="sys.id_sistema" class="col-12 col-md-4 col-sm-6">
                 <q-card class="system-card overflow-hidden transition-3d shadow-sm hover-shadow-lg">
-                  <div class="card-gradient-top"></div>
-                  <q-card-section class="q-pt-xl q-pb-lg text-center">
-                    <q-avatar size="100px" class="system-avatar shadow-lg q-mb-md">
-                      <span class="text-h3 text-weight-bold text-gradient">{{ sys.sistema.charAt(0) }}</span>
+                   <div class="card-gradient-top"></div>
+                  <q-card-section class="q-pt-lg q-pb-md text-center">
+                    <q-avatar size="80px" class="system-avatar shadow-lg q-mb-md">
+                      <span class="text-h4 text-weight-bold text-gradient">{{ sys.sistema.charAt(0) }}</span>
                     </q-avatar>
                     
-                    <div class="text-h5 text-weight-bold text-grey-9">{{ sys.sistema }}</div>
+                    <div class="text-h6 text-weight-bold text-grey-9">{{ sys.sistema }}</div>
                     <div class="text-caption text-primary text-weight-medium q-mb-md letter-spacing-1 truncate">{{ sys.url_sistema }}</div>
                     
                     <q-chip outline color="primary" dense icon="security" class="q-px-md font-bold">
@@ -82,11 +90,12 @@
           </q-tab-panel>
 
           <!-- Roles Panel -->
-          <q-tab-panel name="roles" class="q-pa-xl">
+          <q-tab-panel name="roles" class="q-pa-lg">
              <q-table
               :rows="ssoStore.roles"
               :columns="roleColumns"
               row-key="id_rol"
+              dense
               class="management-table no-shadow no-border bg-transparent"
               :loading="ssoStore.loading"
             >
@@ -125,14 +134,36 @@
           </q-tab-panel>
 
           <!-- Users Panel -->
-          <q-tab-panel name="users" class="q-pa-xl">
+          <q-tab-panel name="users" class="q-pa-lg">
             <q-table
               :rows="ssoStore.users"
               :columns="userColumns"
               row-key="id_user"
+              dense
               class="management-table no-shadow no-border bg-transparent"
               :loading="ssoStore.loading"
             >
+              <!-- ESTATUS -->
+              <template v-slot:body-cell-activo="props">
+                <q-td :props="props" class="text-center">
+                  <q-toggle
+                    v-model="props.row.activo"
+                    color="teal"
+                    @update:model-value="toggleStatus(props.row)"
+                  />
+                </q-td>
+              </template>
+
+              <!-- SEDE -->
+              <template v-slot:body-cell-sede="props">
+                <q-td :props="props">
+                  <div v-if="props.row.id_sede_scope" class="text-indigo text-weight-bold">
+                     <q-icon name="location_on" size="xs" /> {{ getSedeName(props.row.id_sede_scope) }}
+                  </div>
+                  <div v-else class="text-grey-6 italic">Alcance Nacional</div>
+                </q-td>
+              </template>
+
               <template v-slot:body-cell-roles="props">
                 <q-td :props="props">
                   <div class="row q-gutter-xs">
@@ -141,7 +172,7 @@
                       :key="r.id_rol"
                       dense 
                       size="sm" 
-                      class="role-chip glow-indigo"
+                      class="role-chip glow-indigo shadow-1"
                     >
                       <q-avatar color="indigo" text-color="white" size="xs">
                         {{ r.sistema?.sistema.charAt(0) }}
@@ -154,7 +185,14 @@
 
               <template v-slot:body-cell-actions="props">
                 <q-td :props="props" class="text-center">
-                  <q-btn flat round dense icon="group_add" color="secondary" @click="openUserRolesDialog(props.row)" />
+                  <div class="row no-wrap items-center justify-center q-gutter-x-sm">
+                    <q-btn flat round dense icon="settings_suggest" color="indigo-7" @click="openAccessDialog(props.row)">
+                      <q-tooltip>Gestionar Accesos y Alcance</q-tooltip>
+                    </q-btn>
+                    <q-btn flat round dense icon="lock_reset" color="orange-8" @click="resetPwd(props.row)">
+                      <q-tooltip>Reiniciar Contraseña a CI</q-tooltip>
+                    </q-btn>
+                  </div>
                 </q-td>
               </template>
             </q-table>
@@ -204,7 +242,7 @@
     <!-- Role Dialog (with permissions) -->
     <q-dialog v-model="roleDialog.show" persistent>
       <q-card class="modern-dialog rounded-24" style="width: 700px; max-width: 90vw;">
-        <q-card-section class="bg-gradient-indigo text-white q-py-lg">
+        <q-card-section class="bg-gradient-portal text-white q-py-lg">
           <div class="text-h6 font-bold">Configurar Rol y Permisos</div>
         </q-card-section>
         
@@ -278,58 +316,207 @@
     </q-dialog>
 
     <!-- User Roles Assignment Dialog -->
+    <!-- GESTION DE ACCESOS Y ALCANCE (DIÁLOGO AVANZADO) -->
     <q-dialog v-model="userDialog.show" persistent>
-      <q-card class="modern-dialog rounded-24" style="width: 600px;">
-        <q-card-section class="bg-gradient-teal text-white q-py-lg">
-           <div class="row items-center no-wrap">
-             <q-avatar size="50px" color="white" text-color="teal" class="q-mr-md font-bold">
-               {{ userDialog.data.username?.charAt(0).toUpperCase() }}
-             </q-avatar>
-             <div class="column">
-               <div class="text-h6 font-bold">Asignar Roles a Usuario</div>
-               <div class="text-caption opacity-80">{{ userDialog.data.username }}</div>
-             </div>
-           </div>
+      <q-card class="modern-dialog rounded-24 shadow-24" style="width: 750px; max-width: 95vw;">
+        <q-card-section class="bg-gradient-portal text-white q-py-lg">
+          <div class="row items-center no-wrap justify-between">
+            <div class="row items-center no-wrap">
+              <q-icon name="manage_accounts" size="md" class="q-mr-md" />
+              <div class="column">
+                <div class="text-h6 font-bold">Configuración de Seguridad y Alcance</div>
+                <div class="text-caption opacity-80">Usuario: {{ userDialog.data.username }}</div>
+              </div>
+            </div>
+            <!-- SWITCH DE ESTADO EN EL HEADER DEL DIÁLOGO -->
+            <div class="column items-center">
+               <q-toggle
+                 v-model="userDialog.data.activo"
+                 color="white"
+                 keep-color
+                 label="ACCESO HABILITADO"
+                 left-label
+                 class="text-weight-bold"
+               />
+            </div>
+          </div>
         </q-card-section>
         
-        <q-card-section class="q-pa-xl">
-           <div class="text-subtitle1 text-weight-bold q-mb-md">Seleccione los roles permitidos</div>
-           
-           <div class="user-roles-grid">
-              <div v-for="sys in ssoStore.systems" :key="sys.id_sistema" class="sys-group q-mb-lg">
-                 <div class="text-caption text-weight-bolder text-grey-6 q-mb-xs letter-spacing-1">{{ sys.sistema.toUpperCase() }}</div>
-                 <div class="row q-gutter-sm">
-                    <q-checkbox 
-                      v-for="r in getRolesBySystem(sys.id_sistema)" 
-                      :key="r.id_rol"
-                      v-model="userDialog.data.role_ids"
-                      :val="r.id_rol"
-                      :label="r.nombres"
-                      class="role-check-mini rounded-8"
-                    />
+        <q-card-section class="q-pa-xl scroll" style="max-height: 60vh">
+          <q-form id="accessForm" @submit="saveUserAccess" class="q-gutter-y-xl">
+            
+            <!-- ALCANCE POR SEDE -->
+            <div class="config-section">
+               <div class="text-subtitle1 font-bold text-indigo-9 q-mb-sm row items-center">
+                 <q-icon name="location_searching" class="q-mr-sm" /> Alcance de Visibilidad por Sede
+               </div>
+               <q-select
+                 v-model="userDialog.data.id_sede_scope"
+                 :options="geoStore.sedes"
+                 option-label="nombre"
+                 option-value="id_sede"
+                 label="Restringir a una Sede específica (Opcional)"
+                 outlined
+                 emit-value
+                 map-options
+                 class="modern-input"
+                 clearable
+               >
+                 <template v-slot:prepend><q-icon name="apartment" color="indigo" /></template>
+               </q-select>
+               <div class="q-pa-md bg-indigo-1 rounded-12 q-mt-sm border-indigo-2" v-if="!userDialog.data.id_sede_scope">
+                 <div class="text-caption text-indigo-9 italic row items-center">
+                   <q-icon name="public" size="xs" class="q-mr-sm" />
+                   Este usuario tiene <strong>Acceso Nacional</strong>. Puede gestionar datos de todas las sedes.
                  </div>
-              </div>
-           </div>
-
-           <div class="row justify-end q-gutter-x-md q-mt-xl">
-              <q-btn flat label="Cancelar" color="grey-7" v-close-popup class="rounded-12" />
-              <q-btn label="Guardar Cambios" class="btn-gradient-teal rounded-12 q-px-xl text-white" @click="saveUserRoles" :loading="ssoStore.loading" />
+               </div>
             </div>
+
+            <!-- ROLES ASIGNADOS (POR SISTEMA) -->
+            <div class="config-section">
+               <div class="text-subtitle1 font-bold text-teal-9 q-mb-md row items-center">
+                 <q-icon name="admin_panel_settings" class="q-mr-sm" /> Roles y Sistemas
+               </div>
+               <div class="row q-gutter-md">
+                 <div v-for="sys in ssoStore.systems" :key="sys.id_sistema" class="col-12 col-sm-5 q-pa-md bg-grey-1 rounded-12 border-grey-2 shadow-sm">
+                    <div class="text-caption text-weight-bolder text-grey-8 q-mb-sm uppercase">{{ sys.sistema }}</div>
+                    <div class="column q-gutter-y-xs">
+                       <q-checkbox 
+                        v-for="r in getRolesBySystem(sys.id_sistema)" 
+                        :key="r.id_rol"
+                        v-model="userDialog.data.role_ids"
+                        :val="r.id_rol"
+                        :label="r.nombres"
+                        color="teal"
+                        dense
+                        class="text-caption"
+                      />
+                    </div>
+                 </div>
+               </div>
+            </div>
+
+          </q-form>
+        </q-card-section>
+
+        <!-- FOOTER: BOTONES FIJOS -->
+        <q-separator />
+        <q-card-actions align="right" class="q-pa-lg">
+          <q-btn flat label="Cancelar" color="grey-7" v-close-popup class="rounded-12 q-px-lg" />
+          <q-btn 
+            label="Guardar Configuración" 
+            form="accessForm"
+            type="submit" 
+            class="btn-gradient-portal rounded-12 q-px-xl text-white shadow-lift" 
+            :loading="ssoStore.loading" 
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- NEW USER DIALOG -->
+    <q-dialog v-model="newUserDialog.show" persistent>
+      <q-card class="modern-dialog rounded-24" style="width: 500px">
+        <q-card-section class="bg-gradient-portal text-white q-py-md">
+          <div class="text-h6 font-bold">Habilitar Acceso al Sistema</div>
+        </q-card-section>
+        
+        <q-card-section class="q-pa-lg">
+          <q-form @submit="saveNewUser" class="q-gutter-y-md">
+            <div class="text-caption text-grey-7 q-mb-md">Seleccione un funcionario que aún no tenga cuenta de acceso.</div>
+            
+            <q-select
+              v-model="newUserDialog.data.id_persona"
+              :options="ssoStore.personasWithoutUser"
+              option-label="nombres"
+              option-value="id"
+              label="Funcionario / Empleado"
+              outlined
+              emit-value
+              map-options
+              class="modern-input"
+              lazy-rules
+              :rules="[val => !!val || 'Requerido']"
+              @update:model-value="onPersonaForUserSelected"
+            >
+               <template v-slot:option="scope">
+                 <q-item v-bind="scope.itemProps">
+                   <q-item-section>
+                     <q-item-label>{{ scope.opt.primer_apellido }} {{ scope.opt.nombres }}</q-item-label>
+                     <q-item-label caption>CI: {{ scope.opt.ci }}</q-item-label>
+                   </q-item-section>
+                 </q-item>
+               </template>
+            </q-select>
+
+            <q-input
+              v-model="newUserDialog.data.username"
+              label="Nombre de Usuario (Username)"
+              outlined
+              class="modern-input"
+              placeholder="Ej: 13260003"
+              lazy-rules
+              :rules="[val => !!val || 'Requerido']"
+            >
+              <template #append>
+                <q-btn flat dense icon="auto_fix_high" color="primary" @click="suggestUsername" />
+              </template>
+            </q-input>
+
+            <q-input
+              v-model="newUserDialog.data.password"
+              :type="isNewUserPwd ? 'password' : 'text'"
+              label="Contraseña"
+              outlined
+              class="modern-input"
+              lazy-rules
+              :rules="[val => !!val || 'Requerido', val => val.length >= 4 || 'Mín. 4 caracteres']"
+            >
+              <template v-slot:append>
+                <q-icon
+                  :name="isNewUserPwd ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="isNewUserPwd = !isNewUserPwd"
+                />
+              </template>
+            </q-input>
+
+            <div class="text-subtitle2 q-mt-md">Roles Iniciales:</div>
+            <div class="row q-gutter-sm">
+                <q-checkbox 
+                  v-for="r in ssoStore.roles" 
+                  :key="r.id_rol"
+                  v-model="newUserDialog.data.role_ids"
+                  :val="r.id_rol"
+                  :label="`${r.sistema?.sistema}: ${r.nombres}`"
+                  class="role-check-mini"
+                />
+            </div>
+
+            <div class="row justify-end q-gutter-x-md q-mt-lg">
+              <q-btn flat label="Cancelar" color="grey-7" v-close-popup class="rounded-12" />
+              <q-btn label="Crear Cuenta" type="submit" class="btn-gradient-portal rounded-12 q-px-xl text-white" :loading="ssoStore.loading" />
+            </div>
+          </q-form>
         </q-card-section>
       </q-card>
     </q-dialog>
+
   </q-page>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useSsoStore } from '../stores/useSsoStore'
+import { useGeoStore } from '../../geo/stores/useGeoStore'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
 const ssoStore = useSsoStore()
+const geoStore = useGeoStore()
 
 const tab = ref('systems')
+const isNewUserPwd = ref(true)
 const newPermName = ref('')
 
 // Table Columns
@@ -341,21 +528,36 @@ const roleColumns: any[] = [
 ]
 
 const userColumns: any[] = [
+  { name: 'activo', label: 'Estatus', align: 'center', field: 'activo' },
   { name: 'username', label: 'Usuario', align: 'left', field: 'username', sortable: true },
-  { name: 'roles', label: 'Roles Asignados (Multi-System)', align: 'left', field: 'roles' },
+  { name: 'sede', label: 'Sede/Alcance', align: 'left', field: 'sede' },
+  { name: 'roles', label: 'Accesos Habilitados', align: 'left', field: 'roles' },
+  { name: 'actions', label: 'Acciones', align: 'center', field: 'actions' },
+]
+
+const sedeColumns: any[] = [
+  { name: 'nombre', label: 'Nombre', align: 'left', field: 'nombre', sortable: true },
+  { name: 'sigla', label: 'Sigla', align: 'left', field: 'sigla', sortable: true },
+  { name: 'tipo', label: 'Nivel', align: 'left', field: 'id_sede_padre' },
+  { name: 'padre', label: 'Dependencia', align: 'left', field: 'padre' },
+  { name: 'status', label: 'Activo', align: 'center', field: 'activo' },
   { name: 'actions', label: 'Acciones', align: 'center', field: 'actions' },
 ]
 
 // Dialogs state
 const systemDialog = reactive({ show: false, data: { id_sistema: null, sistema: '', url_sistema: '' } })
 const roleDialog = reactive({ show: false, data: { id_rol: null, nombres: '', sistema_id: null, permission_ids: [] as number[] } })
-const userDialog = reactive({ show: false, data: { id_user: null, username: '', role_ids: [] as number[] } })
+const userDialog = reactive({ show: false, data: { id_user: null, username: '', role_ids: [] as number[], id_sede_scope: null, activo: true } })
+const newUserDialog = reactive({ show: false, data: { id_persona: null, username: '', password: '', role_ids: [] as number[] } })
+
 
 onMounted(async () => {
   await Promise.all([
     ssoStore.fetchSystems(),
     ssoStore.fetchRoles(),
-    ssoStore.fetchUsers()
+    ssoStore.fetchPermissions(),
+    ssoStore.fetchUsers(),
+    geoStore.fetchSedes()
   ])
 })
 
@@ -436,11 +638,13 @@ const addPermissionToSystem = async () => {
 
 const availablePermissions = computed(() => ssoStore.permissions)
 
-const openUserRolesDialog = (user: any) => {
+const openAccessDialog = (user: any) => {
   userDialog.data = {
     id_user: user.id_user,
     username: user.username,
-    role_ids: user.roles.map((r: any) => r.id_rol)
+    role_ids: user.roles.map((r: any) => r.id_rol),
+    id_sede_scope: user.id_sede_scope,
+    activo: user.activo
   }
   userDialog.show = true
 }
@@ -449,13 +653,92 @@ const getRolesBySystem = (sistemaId: number) => {
   return ssoStore.roles.filter(r => r.sistema_id === sistemaId)
 }
 
-const saveUserRoles = async () => {
+const saveUserAccess = async () => {
   try {
-    await ssoStore.assignRolesToUser(userDialog.data.id_user as any, userDialog.data.role_ids)
-    $q.notify({ type: 'positive', message: 'Roles de usuario actualizados' })
+    // 1. Update general access (roles and scope)
+    await ssoStore.updateAccess(userDialog.data.id_user as any, {
+      role_ids: userDialog.data.role_ids,
+      id_sede_scope: userDialog.data.id_sede_scope
+    })
+    
+    // 2. Check if status changed
+    const userInStore = ssoStore.users.find(u => u.id_user === userDialog.data.id_user)
+    if (userInStore && userInStore.activo !== userDialog.data.activo) {
+       await ssoStore.toggleUserStatus(userDialog.data.id_user as any)
+    }
+
+    $q.notify({ type: 'positive', message: 'Configuración de seguridad actualizada' })
     userDialog.show = false
   } catch {
-    $q.notify({ type: 'negative', message: 'Error al asignar roles' })
+    $q.notify({ type: 'negative', message: 'Error al actualizar accesos' })
+  }
+}
+
+const toggleStatus = async (user: any) => {
+  try {
+    const originalStatus = user.activo
+    await ssoStore.toggleUserStatus(user.id_user)
+    $q.notify({ 
+      type: originalStatus ? 'warning' : 'positive', 
+      message: originalStatus ? 'Usuario deshabilitado' : 'Usuario habilitado' 
+    })
+  } catch {
+    user.activo = !user.activo // Revert visually
+    $q.notify({ type: 'negative', message: 'Error al cambiar estatus' })
+  }
+}
+
+const resetPwd = (user: any) => {
+  $q.dialog({
+    title: 'Confirmar Re-inicio',
+    message: `¿Estás seguro de resetear la contraseña de ${user.username} a su número de CI? Deberá cambiarla al ingresar.`,
+    cancel: true,
+    persistent: true,
+    ok: { label: 'SI, RESETEAR', color: 'orange-8', unelevated: true }
+  }).onOk(async () => {
+    try {
+      await ssoStore.resetUserPassword(user.id_user)
+      $q.notify({ type: 'positive', message: 'Contraseña restablecida correctamente' })
+    } catch {
+      $q.notify({ type: 'negative', message: 'Error al resetear contraseña' })
+    }
+  })
+}
+
+const getSedeName = (id: number) => {
+  return geoStore.sedes.find(s => s.id_sede === id)?.nombre || id
+}
+
+// User Creation
+const openNewUserDialog = async () => {
+  newUserDialog.data = { id_persona: null, username: '', password: '', role_ids: [] }
+  await ssoStore.fetchPersonasWithoutUser()
+  newUserDialog.show = true
+}
+
+const onPersonaForUserSelected = (id: string) => {
+  if (!id) return
+  const persona = ssoStore.personasWithoutUser.find(p => p.id === id)
+  if (persona) {
+    newUserDialog.data.username = persona.ci
+    newUserDialog.data.password = persona.ci // Predeterminado CI
+  }
+}
+
+const suggestUsername = () => {
+  onPersonaForUserSelected(newUserDialog.data.id_persona as any)
+}
+
+const saveNewUser = async () => {
+  try {
+    await ssoStore.createUser(newUserDialog.data)
+    $q.notify({ type: 'positive', message: 'Usuario creado y habilitado correctamente' })
+    newUserDialog.show = false
+  } catch (err: any) {
+    $q.notify({ 
+      type: 'negative', 
+      message: err.response?.data?.message || 'Error al crear usuario' 
+    })
   }
 }
 </script>
@@ -517,8 +800,7 @@ const saveUserRoles = async () => {
 .shadow-soft { box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
 .shadow-indigo { box-shadow: 0 10px 20px rgba(106, 55, 163, 0.2); }
 
-.bg-gradient-indigo { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
-.bg-gradient-teal { background: linear-gradient(135deg, #0d9488 0%, #00A99D 100%); }
+
 
 .modern-input {
   :deep(.q-field__control) {

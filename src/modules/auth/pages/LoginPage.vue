@@ -107,12 +107,20 @@ const loginForm = reactive({
 const onSubmit = async () => {
   if (authStore.loading) return
 
-  try {
-    await authStore.login(loginForm)
-    success('Bienvenido al sistema SIGETH')
-    
-    // Si viene de un sistema externo por SSO
-    if (router.currentRoute.value.query.returnTo) {
+    try {
+      await authStore.login(loginForm)
+      
+      // Si debe cambiar password, lo mandamos directo al perfil con un flag
+      if (authStore.user?.debe_cambiar_password) {
+        success('Debes actualizar tu contraseña por seguridad')
+        router.push('/perfil?forceChange=1')
+        return
+      }
+
+      success('Bienvenido al sistema SIGETH')
+      
+      // Si viene de un sistema externo por SSO
+      if (router.currentRoute.value.query.returnTo) {
       const returnTo = router.currentRoute.value.query.returnTo as string;
       const tokenStr = authStore.token;
       const userStr = btoa(unescape(encodeURIComponent(JSON.stringify(authStore.user))));

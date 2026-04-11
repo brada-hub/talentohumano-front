@@ -9,6 +9,7 @@ export const useGeoStore = defineStore('geo', () => {
   const ciudades = ref<Ciudad[]>([])
   const nacionalidades = ref<Nacionalidad[]>([])
   const sedes = ref<any[]>([])
+  const campus = ref<any[]>([])
   
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -17,12 +18,7 @@ export const useGeoStore = defineStore('geo', () => {
   async function fetchSedes() {
     loading.value = true
     try {
-      // In this system sedes are in the talento-humano catalogs normally, 
-      // but let's assume we can fetch them via a dedicated geo-like endpoint 
-      // or just pull from the global catalogs if available.
-      // For now, let's pull from the existing API.
-      const response = await geoService.getSedes()
-      sedes.value = response
+      sedes.value = await geoService.getSedes()
       return sedes.value
     } catch (e: any) {
       error.value = e.message || 'Error al cargar sedes'
@@ -32,7 +28,72 @@ export const useGeoStore = defineStore('geo', () => {
     }
   }
 
-  // Actions
+  async function saveSede(sede: any) {
+    loading.value = true
+    try {
+      await geoService.saveSede(sede)
+      await fetchSedes()
+    } catch (e: any) {
+      error.value = e.message || 'Error al guardar sede'
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function deleteSede(id: number) {
+    loading.value = true
+    try {
+      await geoService.deleteSede(id)
+      await fetchSedes()
+    } catch (e: any) {
+      error.value = e.message || 'Error al eliminar sede'
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function fetchCampus() {
+    loading.value = true
+    try {
+      campus.value = await geoService.getCampus()
+      return campus.value
+    } catch (e: any) {
+      error.value = e.message || 'Error al cargar campus'
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function saveCampus(item: any) {
+    loading.value = true
+    try {
+      await geoService.saveCampus(item)
+      await fetchCampus()
+    } catch (e: any) {
+      error.value = e.message || 'Error al guardar campus'
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function deleteCampus(id: number) {
+    loading.value = true
+    try {
+      await geoService.deleteCampus(id)
+      await fetchCampus()
+    } catch (e: any) {
+      error.value = e.message || 'Error al eliminar campus'
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Actions Geo
   async function fetchPaises() {
     if (paises.value.length > 0) return paises.value
     
@@ -121,31 +182,20 @@ export const useGeoStore = defineStore('geo', () => {
     departamentos.value = []
     ciudades.value = []
     nacionalidades.value = []
+    sedes.value = []
+    campus.value = []
     geoService.clearCache()
   }
 
   return {
-    // State
-    paises,
-    departamentos,
-    ciudades,
-    nacionalidades,
-    sedes,
-    loading,
-    error,
+    paises, departamentos, ciudades, nacionalidades,
+    sedes, campus, 
+    loading, error,
     
-    // Actions
-    fetchSedes,
-    fetchPaises,
-    fetchDepartamentos,
-    fetchCiudades,
-    searchCiudades,
-    fetchNacionalidades,
+    fetchSedes, saveSede, deleteSede,
+    fetchCampus, saveCampus, deleteCampus,
+    fetchPaises, fetchDepartamentos, fetchCiudades, searchCiudades, fetchNacionalidades,
     
-    // Helpers
-    getPaisById,
-    getDepartamentoById,
-    getCiudadById,
-    clearCache,
+    getPaisById, getDepartamentoById, getCiudadById, clearCache,
   }
 })

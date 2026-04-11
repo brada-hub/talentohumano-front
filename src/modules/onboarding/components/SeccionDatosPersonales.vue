@@ -4,8 +4,8 @@
     <q-card-section class="bg-unitepc-sso text-white row items-center q-pa-xl">
       <q-avatar size="56px" font-size="28px" color="white" text-color="primary" icon="person" class="q-mr-md shadow-2" />
       <div>
-        <div class="text-h5 text-weight-bolder tracking-tight">1. Datos Personales de Filiacion</div>
-        <div class="text-caption opacity-80 uppercase tracking-widest text-weight-medium">Informacion Obligatoria para Legajo Digital</div>
+        <div class="text-h5 text-weight-bolder tracking-tight">1. Datos Personales de Filiación</div>
+        <div class="text-caption opacity-80 uppercase tracking-widest text-weight-medium">Información Obligatoria para Legajo Digital</div>
       </div>
       <q-space />
       <q-icon name="qr_code_2" size="48px" class="opacity-20 q-mr-md" />
@@ -34,28 +34,30 @@
             </q-btn>
           </div>
           <div class="text-center">
-            <div class="text-subtitle2 text-weight-bold text-grey-8">Fotografia Formal</div>
+            <div class="text-subtitle2 text-weight-bold text-grey-8">Fotografía Formal</div>
             <div class="text-caption text-grey-5 font-italic">Formato vertical .jpg o .png</div>
           </div>
           <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="onFotoChange" />
         </div>
       </div>
 
-      <!-- FORMULARIO LIMPIO MÃƒÂRMOL -->
+      <!-- FORMULARIO LIMPIO -->
       <div class="col-12 col-md-9">
         <div class="row q-col-gutter-lg">
-          <div class="col-12 col-md-4"><q-input v-model="persona.primer_apellido" @update:model-value="save" input-class="text-uppercase" label="Primer Apellido" outlined dense stack-label :rules="[val => !!val || 'Requerido']" class="input-marble" /></div>
+          <div class="col-12 col-md-3"><q-select v-model="persona.tratamiento" @update:model-value="save" :options="tratamientoOptions" label="Tratamiento" outlined dense stack-label class="input-marble" /></div>
+          <div class="col-12 col-md-3"><q-input v-model="persona.primer_apellido" @update:model-value="save" input-class="text-uppercase" label="Primer Apellido" outlined dense stack-label :rules="[val => !!val || 'Requerido']" class="input-marble" /></div>
           <div class="col-12 col-md-4"><q-input v-model="persona.segundo_apellido" @update:model-value="save" input-class="text-uppercase" label="Segundo Apellido" outlined dense stack-label class="input-marble" /></div>
-          <div class="col-12 col-md-4"><q-input v-model="persona.nombres" @update:model-value="save" input-class="text-uppercase" label="Nombramiento Completo" outlined dense stack-label :rules="[val => !!val || 'Requerido']" class="input-marble" /></div>
+          <div class="col-12 col-md-2"><q-input v-model="persona.nombres" @update:model-value="save" input-class="text-uppercase" label="Nombres" outlined dense stack-label :rules="[val => !!val || 'Requerido']" class="input-marble" /></div>
           
-          <div class="col-12 col-md-4"><q-input v-model="persona.ci" @update:model-value="save" input-class="text-uppercase" label="Cedula de Identidad" outlined dense stack-label :rules="[val => !!val || 'Requerido']" class="input-marble" /></div>
+          <div class="col-12 col-md-4"><q-input v-model="persona.ci" @update:model-value="save" input-class="text-uppercase" label="Cédula de Identidad" outlined dense stack-label :rules="[val => !!val || 'Requerido']" class="input-marble" /></div>
           <div class="col-12 col-md-2"><q-input v-model="persona.complemento" @update:model-value="save" input-class="text-uppercase" label="Comp." outlined dense stack-label class="input-marble" /></div>
           <div class="col-12 col-md-3"><q-select v-model="persona.id_expedido" @update:model-value="save" label="Expedido" outlined dense :options="expedidoOptions" emit-value map-options stack-label class="input-marble" :rules="[val => !!val || 'Requerido']" /></div>
-          <div class="col-12 col-md-3"><q-select v-model="persona.id_sexo" @update:model-value="save" label="Genero" outlined dense :options="sexOptions" emit-value map-options stack-label class="input-marble" :rules="[val => !!val || 'Requerido']" /></div>
+          <div class="col-12 col-md-3"><q-select v-model="persona.id_sexo" @update:model-value="save" label="Género" outlined dense :options="sexOptions" emit-value map-options stack-label class="input-marble" :rules="[val => !!val || 'Requerido']" /></div>
 
           <div class="col-12 col-md-4"><q-input v-model="persona.fecha_nacimiento" @update:model-value="save" type="date" stack-label label="Fecha de Nacimiento" outlined dense class="input-marble" :rules="[val => !!val || 'Requerido']" /></div>
-          <div class="col-12 col-md-4"><q-input v-model="persona.celular_personal" @update:model-value="save" label="Telefono Celular" outlined dense stack-label class="input-marble" :rules="[val => val && val.length >= 8 || 'Min. 8 digitos']" /></div>
+          <div class="col-12 col-md-4"><q-input v-model="persona.celular_personal" @update:model-value="save" label="Teléfono Celular" outlined dense stack-label class="input-marble" :rules="[val => val && val.length >= 8 || 'Min. 8 digitos']" /></div>
           <div class="col-12 col-md-4"><q-input v-model="persona.correo_personal" @update:model-value="save" label="Email de Contacto" outlined dense stack-label class="input-marble" :rules="[val => !!val || 'Requerido']" /></div>
+          <div class="col-12 col-md-4"><q-input v-model="persona.correo_institucional" @update:model-value="save" label="Correo Institucional" outlined dense stack-label class="input-marble" /></div>
           
           <div class="col-12 col-md-3"><q-select v-model="persona.estado_civil" @update:model-value="save" label="Estado Civil" outlined dense :options="civOptions" stack-label class="input-marble" :rules="[val => !!val || 'Requerido']" /></div>
           <div class="col-12 col-md-3"><q-select v-model="persona.id_nacionalidad" @update:model-value="save" :options="nationOptions" emit-value map-options label="Nacionalidad Originaria" outlined dense stack-label class="input-marble" :rules="[val => !!val || 'Requerido']" /></div>
@@ -75,13 +77,13 @@
 
           <div class="col-12 col-md-3"><q-select v-model="persona.id_ciudad" :options="cityOptions" emit-value map-options label="Ciudad / Municipio" outlined dense stack-label class="input-marble" :rules="[val => !!val || 'Requerido']" /></div>
 
-          <div class="col-12"><q-input v-model="persona.direccion_domicilio" @update:model-value="save" input-class="text-uppercase" label="Direccion Detallada de Domicilio" outlined dense stack-label class="input-marble" :rules="[val => !!val || 'Requerido']" /></div>
+          <div class="col-12"><q-input v-model="persona.direccion_domicilio" @update:model-value="save" input-class="text-uppercase" label="Dirección Detallada de Domicilio" outlined dense stack-label class="input-marble" :rules="[val => !!val || 'Requerido']" /></div>
 
           <div class="col-12 q-mt-md">
             <q-file 
               v-model="archivos.ci_escaneado" 
               @update:model-value="onCiEscaneadoChange"
-              label="Cedula de Identidad Escaneada (Obligatorio) *" 
+              label="Cédula de Identidad Escaneada (Obligatorio) *" 
               outlined 
               dense
               class="input-marble"
@@ -95,46 +97,6 @@
                 <q-icon v-if="archivos.ci_escaneado" name="check_circle" color="positive" />
               </template>
             </q-file>
-          </div>
-        </div>
-
-        <!-- SECCION: SEGURIDAD SOCIAL -->
-        <div class="row q-col-gutter-lg q-mt-lg">
-          <div class="col-12">
-            <div class="text-subtitle1 text-weight-bold text-grey-8 q-mb-sm row items-center">
-              <q-icon name="verified_user" color="indigo-9" size="sm" class="q-mr-sm" />
-              Seguridad Social y Prevision
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <q-select 
-              v-model="persona.id_caja" 
-              :options="onboardingStore.cajas" 
-              emit-value map-options
-              label="Caja de Salud *" 
-              outlined dense stack-label 
-              class="input-marble" 
-              @update:model-value="save"
-              :rules="[val => !!val || 'Campo Requerido']"
-            />
-          </div>
-          <div class="col-12 col-md-6">
-            <q-input v-model="persona.nro_matricula_seguro" @update:model-value="save" label="NÃ‚Âº MatrÃƒÂ­cula de Seguro (si posee)" outlined dense stack-label class="input-marble" />
-          </div>
-          <div class="col-12 col-md-6">
-            <q-select 
-              v-model="persona.id_entidad_pensiones" 
-              :options="onboardingStore.pensiones" 
-              emit-value map-options
-              label="AFP Administradora *" 
-              outlined dense stack-label 
-              class="input-marble" 
-              @update:model-value="save"
-              :rules="[val => !!val || 'Campo Requerido']"
-            />
-          </div>
-          <div class="col-12 col-md-6">
-            <q-input v-model="persona.nro_nua_cua" @update:model-value="save" label="NÃ‚Âº NUA / CUA" outlined dense stack-label class="input-marble" :rules="[val => !!val || 'Campo Requerido']" />
           </div>
         </div>
       </div>
@@ -163,19 +125,20 @@ const cityOptions = computed(() => onboardingStore.ciudades)
 
 const sexOptions = [ { label: 'Masculino', value: 1 }, { label: 'Femenino', value: 2 } ]
 const civOptions = ['Soltero(a)', 'Casado(a)', 'Divorciado(a)', 'Viudo(a)', 'Conviviente']
+const tratamientoOptions = ['Sr.', 'Sra.', 'Lic.', 'Ing.', 'Dr.', 'Dra.', 'Mgtr.', 'PhD.']
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const fotoPreview = ref<string | null>(null)
+const lastGeneratedInstitutionalEmail = ref('')
 
 onMounted(async () => {
   if (onboardingStore.persona.foto) fotoPreview.value = onboardingStore.persona.foto
   
-  // Cargar catÃƒÂ¡logos base en paralelo
+  // Cargar catálogos base en paralelo
   await Promise.all([
     onboardingStore.fetchPaises(),
     onboardingStore.fetchNacionalidades(),
-    onboardingStore.fetchExpedidos(),
-    onboardingStore.fetchCajas()
+    onboardingStore.fetchExpedidos()
   ])
   
   // Si ya tiene un pais seleccionado de antes (Bolivia por defecto), cargar los deptos de residencia
@@ -252,12 +215,46 @@ const save = () => {
   if (persona.value.ci) persona.value.ci = sanitizeAlphanumeric(persona.value.ci).toUpperCase()
   if (persona.value.complemento) persona.value.complemento = sanitizeAlphanumeric(persona.value.complemento).toUpperCase()
   if (persona.value.celular_personal) persona.value.celular_personal = sanitizeNumbers(persona.value.celular_personal)
-  if (persona.value.nro_matricula_seguro) persona.value.nro_matricula_seguro = sanitizeAlphanumeric(persona.value.nro_matricula_seguro).toUpperCase()
-  if (persona.value.nro_nua_cua) persona.value.nro_nua_cua = sanitizeAlphanumeric(persona.value.nro_nua_cua).toUpperCase()
   if (persona.value.direccion_domicilio) persona.value.direccion_domicilio = sanitizeAlphanumeric(persona.value.direccion_domicilio).toUpperCase()
   
   emit('change')
 }
+
+const normalizeForEmail = (value: string) =>
+  String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+
+const buildInstitutionalEmail = () => {
+  const nombres = normalizeForEmail(persona.value.nombres)
+  const apellidos = normalizeForEmail(persona.value.primer_apellido)
+
+  if (!nombres.length || !apellidos.length) return ''
+
+  return `${nombres[0]}.${apellidos[0]}@unitepc.edu.bo`
+}
+
+watch(
+  () => [persona.value.nombres, persona.value.primer_apellido],
+  () => {
+    const generated = buildInstitutionalEmail()
+    const current = String(persona.value.correo_institucional || '').trim().toLowerCase()
+
+    if (!generated) return
+
+    if (!current || current === lastGeneratedInstitutionalEmail.value) {
+      persona.value.correo_institucional = generated
+    }
+
+    lastGeneratedInstitutionalEmail.value = generated
+  },
+  { immediate: true }
+)
 </script>
 
 <style lang="scss" scoped>

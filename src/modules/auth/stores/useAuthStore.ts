@@ -12,6 +12,13 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: (state) => !!state.token,
     userPermissions: (state) => state.user?.permissions || [],
     userRoles: (state) => state.user?.roles || [],
+    userFullName: (state) => {
+      const p = state.user?.persona;
+      if (!p) return state.user?.username || 'Usuario';
+      return `${p.nombres} ${p.primer_apellido} ${p.segundo_apellido || ''}`.trim();
+    },
+    userCI: (state) => state.user?.persona?.ci || '',
+    userSede: (state) => state.user?.sede?.nombre || 'General',
   },
 
   actions: {
@@ -58,6 +65,26 @@ export const useAuthStore = defineStore('auth', {
         localStorage.setItem('sigeth_user', JSON.stringify(this.user));
       } catch (error) {
         console.error('Error fetching me:', error);
+      }
+    },
+
+    async changePassword(data: any) {
+      this.loading = true;
+      try {
+        await api.post('/v1/auth/change-password', data);
+        await this.fetchMe();
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async updateProfile(data: any) {
+      this.loading = true;
+      try {
+        await api.post('/v1/auth/update-profile', data);
+        await this.fetchMe();
+      } finally {
+        this.loading = false;
       }
     },
 

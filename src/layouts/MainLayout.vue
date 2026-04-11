@@ -49,7 +49,7 @@
           <q-list class="q-gutter-y-xs">
             <template v-for="item in navItems" :key="item.path">
               <q-item
-                v-if="!item.requiresAdmin || isAdmin"
+                v-if="canAccessItem(item)"
                 clickable
                 v-ripple
                 :to="item.path"
@@ -74,11 +74,12 @@
         <div class="q-pa-md column q-gutter-y-sm">
            <div class="row no-wrap items-center q-pa-sm bg-grey-1 rounded-8">
               <q-avatar size="34px" color="indigo-1" text-color="indigo-9" class="text-weight-bold shadow-1">
-                 {{ authStore.user?.username.charAt(0).toUpperCase() }}
+                 <q-img v-if="authStore.user?.persona?.foto" :src="authStore.user?.persona?.foto_url || authStore.user?.persona?.foto" />
+                 <span v-else>{{ (authStore.userFullName || 'U').charAt(0).toUpperCase() }}</span>
               </q-avatar>
               <div class="column q-ml-md overflow-hidden">
                  <span class="text-caption text-weight-bolder text-grey-9 text-uppercase ellipsis" style="font-size: 11px;">
-                    {{ authStore.user?.username }}
+                    {{ authStore.userFullName }}
                  </span>
                  <span class="text-grey-6 text-uppercase text-weight-bolder" style="font-size: 8px;">
                     {{ activeRole }}
@@ -103,19 +104,157 @@
     <q-page-container class="bg-page shadow-inner">
       <router-view />
     </q-page-container>
+
+    <!-- DIALOGO: CAMBIO DE CONTRASEÑA OBLIGATORIO (PRIMER LOGUEO) -->
+    <q-dialog v-model="showChangePasswordDialog" persistent>
+      <q-card class="modern-dialog rounded-24 shadow-24" style="width: 450px">
+        <q-card-section class="bg-gradient-portal text-white q-py-lg">
+          <div class="row items-center no-wrap">
+            <q-icon name="security" size="md" class="q-mr-md" />
+            <div class="column">
+              <div class="text-h6 font-bold">Cambio de Contraseña Obligatorio</div>
+              <div class="text-caption opacity-80">Por seguridad, debes actualizar tu contraseña en tu primer acceso.</div>
+            </div>
+          </div>
+        </q-card-section>
+        
+        <q-card-section class="q-pa-xl">
+          <q-form @submit="handleChangePassword" class="q-gutter-y-lg">
+             <q-input
+              v-model="passwordForm.current_password"
+              :type="isPwd1 ? 'password' : 'text'"
+              label="Contraseña Actual (tu CI)"
+              outlined
+              class="modern-input"
+              lazy-rules
+              :rules="[val => !!val || 'Requerido']"
+            >
+              <template v-slot:append>
+                <q-icon
+                  :name="isPwd1 ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="isPwd1 = !isPwd1"
+                />
+              </template>
+            </q-input>
+            <q-input
+              v-model="passwordForm.new_password"
+              :type="isPwd2 ? 'password' : 'text'"
+              label="Nueva Contraseña"
+              outlined
+              class="modern-input"
+              lazy-rules
+              :rules="[val => !!val || 'Requerido', val => val.length >= 4 || 'MÃ­n. 4 caracteres']"
+            >
+              <template v-slot:append>
+                <q-icon
+                  :name="isPwd2 ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="isPwd2 = !isPwd2"
+                />
+              </template>
+            </q-input>
+            <q-input
+              v-model="passwordForm.new_password_confirmation"
+              :type="isPwd3 ? 'password' : 'text'"
+              label="Confirmar Nueva Contraseña"
+              outlined
+              class="modern-input"
+              lazy-rules
+              :rules="[val => !!val || 'Requerido', val => val === passwordForm.new_password || 'Las contraseñas no coinciden']"
+            >
+              <template v-slot:append>
+                <q-icon
+                  :name="isPwd3 ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="isPwd3 = !isPwd3"
+                />
+              </template>
+            </q-input>
+
+            <div class="row justify-end q-mt-xl">
+              <q-btn 
+                label="Actualizar y Continuar" 
+                type="submit" 
+                class="btn-gradient-portal rounded-12 q-px-xl text-white" 
+                :loading="loadingPassword"
+              />
+            </div>
+          </q-form>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="sessionTimeoutState.warningVisible" persistent>
+      <q-card class="modern-dialog rounded-24 shadow-24" style="width: 440px; max-width: 92vw">
+        <q-card-section class="bg-gradient-portal text-white q-py-lg">
+          <div class="row items-center no-wrap">
+            <q-icon name="schedule" size="md" class="q-mr-md" />
+            <div class="column">
+              <div class="text-h6 font-bold">Sesión por expirar</div>
+              <div class="text-caption opacity-80">Detectamos inactividad. Puedes continuar o cerrar ahora.</div>
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-section class="q-pa-xl">
+          <div class="text-body1 text-grey-8 q-mb-md">
+            Tu sesión se cerrará en
+            <span class="text-primary text-weight-bolder">{{ sessionTimeoutState.countdownSeconds }}</span>
+            segundos.
+          </div>
+          <div class="text-caption text-grey-6">
+            Si sigues trabajando, presiona <strong>Seguir en línea</strong>.
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="q-px-xl q-pb-xl q-gutter-sm">
+          <q-btn flat no-caps color="negative" label="Cerrar sesión ahora" @click="handleSessionLogoutNow" />
+          <q-btn no-caps class="btn-gradient-portal text-white rounded-12 q-px-lg" label="Seguir en línea" @click="handleSessionContinue" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-layout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from 'src/modules/auth/stores/useAuthStore'
+import { sessionTimeoutManager, sessionTimeoutState } from 'src/shared/session/sessionTimeoutManager'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
 const leftDrawerOpen = ref(false)
+
+// Lógica de cambio de contraseña obligatorio
+const isPwd1 = ref(true)
+const isPwd2 = ref(true)
+const isPwd3 = ref(true)
+const showChangePasswordDialog = computed(() => !!authStore.user?.debe_cambiar_password)
+const loadingPassword = ref(false)
+const passwordForm = reactive({
+  current_password: '',
+  new_password: '',
+  new_password_confirmation: ''
+})
+
+const handleChangePassword = async () => {
+  loadingPassword.value = true
+  try {
+    await authStore.changePassword({
+      current_password: passwordForm.current_password,
+      new_password: passwordForm.new_password,
+      new_password_confirmation: passwordForm.new_password_confirmation
+    })
+  } catch (err: any) {
+    console.error(err)
+  } finally {
+    loadingPassword.value = false
+  }
+}
 
 onMounted(async () => {
   await authStore.fetchMe()
@@ -125,13 +264,16 @@ const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
 
-// Menú del Sistema de Gestión de Talento Humano (SIGETH)
+// MenÃº del Sistema de GestiÃ³n de Talento Humano (SIGETH)
 const navItems = [
   { label: 'Inicio', icon: 'dashboard', path: '/', requiresAdmin: false },
-  { label: 'Personas', icon: 'badge', path: '/personal', requiresAdmin: false },
-  { label: 'Recordatorios', icon: 'notifications_active', path: '/recordatorios', requiresAdmin: false },
-  { label: 'Catálogos', icon: 'folder_open', path: '/geo', requiresAdmin: true },
-  { label: 'SSO & Accesos', icon: 'admin_panel_settings', path: '/sso', requiresAdmin: true },
+  { label: 'Personas', icon: 'badge', path: '/personal', requiresAdmin: false, permission: 'personal.ver' },
+  { label: 'Recordatorios', icon: 'notifications_active', path: '/recordatorios', requiresAdmin: false, permission: 'recordatorios.ver' },
+  { label: 'Reportes', icon: 'analytics', path: '/reportes', requiresAdmin: false, permission: 'reportes.ver' },
+  { label: 'Sedes y Campus', icon: 'apartment', path: '/sedes', requiresAdmin: true, permission: 'sedes.ver' },
+  { label: 'Estructura', icon: 'account_tree', path: '/estructura', requiresAdmin: true, permission: 'estructura.ver' },
+  { label: 'Catálogos', icon: 'folder_open', path: '/geo', requiresAdmin: true, permission: 'geo.ver' },
+  { label: 'SSO & Accesos', icon: 'admin_panel_settings', path: '/sso', requiresAdmin: true, permission: 'sso.ver' },
   { label: 'Mi Perfil', icon: 'account_circle', path: '/perfil', requiresAdmin: false },
 ]
 
@@ -153,15 +295,35 @@ const isAdmin = computed(() => {
   return role === 'ADMIN' || role === 'SISTEMAS' || role === 'ADMINISTRADOR'
 })
 
+const canAccessItem = (item: { requiresAdmin?: boolean; permission?: string }) => {
+  if (item.requiresAdmin && !isAdmin.value) {
+    return false
+  }
+
+  if (!item.permission) {
+    return true
+  }
+
+  return isAdmin.value || authStore.can(item.permission)
+}
+
 const handleLogout = async () => {
   await authStore.logout()
   router.push('/login')
 }
+
+const handleSessionContinue = async () => {
+  await sessionTimeoutManager.continueSession()
+}
+
+const handleSessionLogoutNow = async () => {
+  await sessionTimeoutManager.logoutNow()
+}
 </script>
 
 <style lang="scss">
-// ══ COLOR VARIABLES SISPO ══
-$sispo-primary: #6A37A3; // Púrpura UNITEPC
+// â•â• COLOR VARIABLES SISPO â•â•
+$sispo-primary: #6A37A3; // PÃºrpura UNITEPC
 $sispo-accent: #00A99D;  // Teal / Turquesa de SISPO
 $sispo-bg: #fdf2ff;      // Fondo lila suave para botones secundarios
 $sispo-grey: #f4f6f8;    // Gris suave para cards sidebar
@@ -210,3 +372,4 @@ $sispo-grey: #f4f6f8;    // Gris suave para cards sidebar
   .hide-on-mobile { display: none; }
 }
 </style>
+

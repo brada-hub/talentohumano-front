@@ -1,25 +1,37 @@
 <template>
-  <q-page class="sigeth-page">
-    <!-- Page Hero -->
-    <div class="page-hero">
-      <div class="page-hero__left">
-        <div class="page-hero__title">Catálogos Geográficos</div>
-        <div class="page-hero__subtitle">
-          Administración de países, departamentos y ciudades
+  <q-page class="q-pa-lg">
+    <!-- Header Hero -->
+    <div class="row items-center q-mb-lg animate-fade-in">
+      <div class="col">
+        <div class="row items-center q-gutter-x-md">
+          <q-icon name="explore" size="38px" class="text-primary icon-glow" />
+          <div class="column">
+            <h1 class="text-h5 text-weight-bolder brand-text q-my-none">Catálogos Geográficos</h1>
+            <p class="text-caption text-grey-7 q-mb-none font-medium">Administración de la infraestructura geográfica</p>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Tabs for different catalogs -->
-    <q-card class="sigeth-card">
-      <q-tabs v-model="tab" class="text-primary" align="left">
-        <q-tab name="paises" icon="public" label="Países" />
-        <q-tab name="departamentos" icon="map" label="Departamentos" />
-        <q-tab name="ciudades" icon="location_city" label="Ciudades" />
-        <q-tab name="sedes" icon="business" label="Sedes / Campi" />
-      </q-tabs>
+    <!-- Main Content Tabs -->
+    <div class="q-gutter-y-lg animate-slide-up">
+      <q-card class="glass-card shadow-soft rounded-24 overflow-hidden border-glass">
+        <q-tabs
+          v-model="tab"
+          class="text-grey-7 bg-grey-1 q-pa-sm"
+          active-color="white"
+          indicator-color="transparent"
+          active-class="bg-gradient-portal shadow-md text-white font-bold"
+          align="left"
+          no-caps
+          :breakpoint="0"
+        >
+          <q-tab name="paises" icon="explore" label="Países" class="rounded-16 q-mx-xs transition-hover text-weight-bold" style="min-height: 60px" />
+          <q-tab name="departamentos" icon="map" label="Departamentos" class="rounded-16 q-mx-xs transition-hover text-weight-bold" style="min-height: 60px" />
+          <q-tab name="ciudades" icon="location_city" label="Ciudades" class="rounded-16 q-mx-xs transition-hover text-weight-bold" style="min-height: 60px" />
+        </q-tabs>
 
-      <q-separator />
+        <q-separator />
 
       <q-tab-panels v-model="tab" animated>
         <!-- Países Panel -->
@@ -30,8 +42,9 @@
               outlined
               dense
               placeholder="Buscar país..."
-              class="table-search"
+              class="modern-input"
               debounce="300"
+              style="max-width: 400px;"
             >
               <template #prepend>
                 <q-icon name="search" color="primary" />
@@ -44,16 +57,21 @@
             :columns="paisesColumns"
             row-key="id_pais"
             flat
-            class="sigeth-table"
+            class="management-table no-shadow no-border bg-transparent"
             :loading="geoStore.loading"
             :pagination="{ rowsPerPage: 10 }"
           >
             <template #body-cell-activo="props">
               <q-td :props="props">
-                <q-badge
-                  :color="props.row.activo ? 'positive' : 'negative'"
-                  :label="props.row.activo ? 'Activo' : 'Inactivo'"
-                />
+                <q-chip
+                  :color="props.row.activo ? 'green-1' : 'red-1'"
+                  :text-color="props.row.activo ? 'green-9' : 'red-9'"
+                  class="text-weight-bold"
+                  size="sm"
+                >
+                  <q-icon :name="props.row.activo ? 'check_circle' : 'cancel'" size="16px" class="q-mr-xs" />
+                  {{ props.row.activo ? 'ACTIVO' : 'INACTIVO' }}
+                </q-chip>
               </q-td>
             </template>
           </q-table>
@@ -74,17 +92,32 @@
             :columns="departamentosColumns"
             row-key="id_departamento"
             flat
-            class="sigeth-table"
+            class="management-table no-shadow no-border bg-transparent"
             :loading="geoStore.loading"
             :pagination="{ rowsPerPage: 10 }"
           >
+            <template #body-cell-pais_id="props">
+              <q-td :props="props">
+                <q-chip
+                  outline
+                  color="indigo-5"
+                  size="sm"
+                  class="text-weight-bold"
+                  icon="public"
+                >
+                  {{ geoStore.getPaisById(props.row.pais_id)?.nombre || `ID: ${props.row.pais_id}` }}
+                </q-chip>
+              </q-td>
+            </template>
             <template #body-cell-codigo_expedido="props">
               <q-td :props="props">
                 <q-chip
                   v-if="props.row.codigo_expedido"
-                  color="secondary"
-                  text-color="white"
+                  color="indigo-1"
+                  text-color="indigo-9"
                   size="sm"
+                  class="text-weight-bolder"
+                  square
                   :label="props.row.codigo_expedido"
                 />
                 <span v-else class="text-grey">—</span>
@@ -127,72 +160,49 @@
             :columns="ciudadesColumns"
             row-key="id_ciudad"
             flat
-            class="sigeth-table"
+            dense
+            class="management-table no-shadow no-border bg-transparent"
             :loading="geoStore.loading"
             :pagination="{ rowsPerPage: 10 }"
           >
-            <template #body-cell-departamento="props">
+            <template #body-cell-pais="props">
               <q-td :props="props">
                 <q-chip
-                  v-if="props.row.departamento"
                   outline
-                  color="primary"
+                  color="indigo-5"
                   size="sm"
-                  :label="props.row.departamento.nombre"
-                />
-                <span v-else class="text-grey">—</span>
-              </q-td>
-            </template>
-          </q-table>
-        </q-tab-panel>
-
-        <!-- Sedes Panel -->
-        <q-tab-panel name="sedes">
-          <div class="table-toolbar row items-center q-gutter-x-md">
-            <q-input
-              v-model="searchSedes"
-              outlined
-              dense
-              placeholder="Buscar sede (Cochabamba, La Paz...)"
-              class="table-search col"
-              debounce="300"
-            >
-              <template #prepend>
-                <q-icon name="search" color="primary" />
-              </template>
-            </q-input>
-            <q-chip outline color="secondary" icon="info">Estas sedes se sincronizan con SISPO/SIGVA</q-chip>
-          </div>
-
-          <q-table
-            :rows="filteredSedes"
-            :columns="sedesColumns"
-            row-key="id_sede"
-            flat
-            class="sigeth-table"
-            :loading="geoStore.loading"
-            :pagination="{ rowsPerPage: 10 }"
-          >
-            <template #body-cell-sigla="props">
-              <q-td :props="props">
-                <q-chip square color="indigo-1" text-color="indigo-9" class="text-weight-bold">
-                  {{ props.row.sigla }}
+                  class="text-weight-bold"
+                  icon="public"
+                >
+                  <template v-if="geoStore.getDepartamentoById(props.row.departamento_id)">
+                    {{ geoStore.getPaisById(geoStore.getDepartamentoById(props.row.departamento_id).pais_id)?.nombre || '—' }}
+                  </template>
+                  <template v-else-if="selectedPaisFilter">
+                     {{ geoStore.getPaisById(selectedPaisFilter)?.nombre || '—' }}
+                  </template>
+                  <span v-else>—</span>
                 </q-chip>
               </q-td>
             </template>
-            <template #body-cell-activo="props">
+            <template #body-cell-departamento="props">
               <q-td :props="props">
-                <q-badge
-                  :color="props.row.activo ? 'positive' : 'negative'"
-                  :label="props.row.activo ? 'ACTIVO' : 'INACTIVO'"
-                />
+                <q-chip
+                  outline
+                  color="indigo-5"
+                  size="sm"
+                  class="text-weight-bold"
+                  icon="map"
+                >
+                  {{ geoStore.getDepartamentoById(props.row.departamento_id)?.nombre || (selectedDeptoFilter ? geoStore.getDepartamentoById(selectedDeptoFilter)?.nombre : '—') }}
+                </q-chip>
               </q-td>
             </template>
           </q-table>
         </q-tab-panel>
       </q-tab-panels>
     </q-card>
-  </q-page>
+  </div>
+</q-page>
 </template>
 
 <script setup lang="ts">
@@ -220,14 +230,15 @@ const paisesColumns = [
 ]
 
 const departamentosColumns = [
-  { name: 'nombre', label: 'Nombre', field: 'nombre', align: 'left' as const, sortable: true },
+  { name: 'pais_id', label: 'País', field: 'pais_id', align: 'left' as const, sortable: true },
+  { name: 'nombre', label: 'Departamento', field: 'nombre', align: 'left' as const, sortable: true },
   { name: 'codigo_expedido', label: 'Código', field: 'codigo_expedido', align: 'center' as const },
-  { name: 'pais_id', label: 'ID País', field: 'pais_id', align: 'center' as const },
 ]
 
 const ciudadesColumns = [
-  { name: 'nombre', label: 'Nombre', field: 'nombre', align: 'left' as const, sortable: true },
+  { name: 'pais', label: 'País', field: (row: any) => row.departamento?.pais_id, align: 'left' as const },
   { name: 'departamento', label: 'Departamento', field: 'departamento', align: 'left' as const },
+  { name: 'nombre', label: 'Ciudad', field: 'nombre', align: 'left' as const, sortable: true },
 ]
 
 const sedesColumns = [
@@ -294,3 +305,96 @@ onMounted(async () => {
   ])
 })
 </script>
+
+<style scoped lang="scss">
+.border-glass {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+}
+
+.brand-text {
+  background: linear-gradient(90deg, #6A37A3 0%, #00A99D 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -1px;
+}
+
+.icon-glow {
+  filter: drop-shadow(0 0 10px rgba(106, 55, 163, 0.3));
+}
+
+.font-bold { font-weight: 700; }
+.font-medium { font-weight: 500; }
+
+.rounded-16 { border-radius: 16px !important; }
+.rounded-24 { border-radius: 24px !important; }
+
+.shadow-soft { box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+
+/* Para forzar el ícono arriba y centrado en las pestañas */
+:deep(.q-tab__content) {
+  flex-direction: column !important;
+  padding: 12px 24px;
+}
+
+.modern-input {
+  :deep(.q-field__control) {
+    border-radius: 12px !important;
+    background: rgba(244, 246, 248, 0.8) !important;
+  }
+}
+
+.transition-hover:hover {
+  background: rgba(0,0,0,0.02);
+}
+
+.management-table {
+  :deep(thead th) {
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 11px;
+    color: #64748b;
+    letter-spacing: 1px;
+    padding: 12px 16px;
+  }
+  
+  :deep(tbody td) {
+    padding: 8px 16px;
+    font-size: 13px;
+    color: #1e293b;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  :deep(tbody tr) {
+    transition: all 0.2s ease;
+    &:hover {
+      background: #f8fafc !important;
+      transform: scale(1.002);
+    }
+  }
+}
+
+// Animations
+.animate-fade-in {
+  animation: fadeIn 0.8s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+</style>

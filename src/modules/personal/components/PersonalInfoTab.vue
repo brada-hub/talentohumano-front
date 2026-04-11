@@ -35,6 +35,11 @@
             <div class="row q-col-gutter-lg">
               <div class="col-12">
                 <div class="attribute-group" v-if="!isEditing">
+                  <div class="attribute-label">TRATAMIENTO</div>
+                  <div class="attribute-value">{{ persona.tratamiento || 'N/R' }}</div>
+                </div>
+                <q-select v-else v-model="localPersona.tratamiento" :options="tratamientoOptions" label="Tratamiento" outlined dense stack-label class="q-mb-sm" />
+                <div class="attribute-group" v-if="!isEditing">
                   <div class="attribute-label">NOMBRES Y APELLIDOS</div>
                   <div class="attribute-value">{{ persona.nombres }} {{ persona.primer_apellido }} {{ persona.segundo_apellido }}</div>
                 </div>
@@ -260,6 +265,7 @@ const fileRef = ref<HTMLInputElement | null>(null)
 const boliviaExpedidos = ref<any[]>([])
 const residenceDepartamentos = ref<any[]>([])
 const residenceCiudades = ref<any[]>([])
+const lastGeneratedInstitutionalEmail = ref('')
 
 const expedidos = computed(() => boliviaExpedidos.value.map((d: any) => ({ label: d.nombre, value: d.id_departamento })))
 const sexos = computed(() => personalStore.catalogs.sexos.map((s: any) => ({ label: s.sexo, value: s.id_sexo })))
@@ -269,6 +275,7 @@ const pensionesCatalogo = computed(() => personalStore.catalogs.entidad_pensione
 const paisesCatalogo = computed(() => personalStore.catalogs.paises.map((p: any) => ({ label: p.nombre, value: p.id_pais })))
 const deptosCatalogo = computed(() => residenceDepartamentos.value.map((d: any) => ({ label: d.nombre, value: d.id_departamento })))
 const ciudadesCatalogo = computed(() => residenceCiudades.value.map((c: any) => ({ label: c.nombre, value: c.id_ciudad })))
+const tratamientoOptions = ['Sr.', 'Sra.', 'Lic.', 'Ing.', 'Dr.', 'Dra.', 'Mgtr.', 'PhD.']
 
 const getBoliviaId = () => {
   const bolivia = personalStore.catalogs.paises.find(
@@ -344,6 +351,7 @@ const startEdit = () => {
 
   if (localEmpleado.value.id_caja) localEmpleado.value.id_caja = Number(localEmpleado.value.id_caja)
   if (localEmpleado.value.id_entidad_pensiones) localEmpleado.value.id_entidad_pensiones = Number(localEmpleado.value.id_entidad_pensiones)
+  lastGeneratedInstitutionalEmail.value = buildInstitutionalEmail(localPersona.value.nombres, localPersona.value.primer_apellido)
 
   isEditing.value = true
   void loadResidenceDepartamentos(localPersona.value.id_pais)
@@ -392,6 +400,25 @@ const calculateAge = (birthday: string) => {
   return Math.abs(ageDate.getUTCFullYear() - 1970)
 }
 
+const normalizeForEmail = (value: string) =>
+  String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+
+const buildInstitutionalEmail = (nombres: string, primerApellido: string) => {
+  const nombresTokens = normalizeForEmail(nombres)
+  const apellidosTokens = normalizeForEmail(primerApellido)
+
+  if (!nombresTokens.length || !apellidosTokens.length) return ''
+
+  return `${nombresTokens[0]}.${apellidosTokens[0]}@unitepc.edu.bo`
+}
+
 onMounted(async () => {
   await personalStore.fetchCatalogs()
   await loadBoliviaExpedidos()
@@ -433,6 +460,25 @@ watch(
 
     await loadResidenceCiudades(normalizedNew)
   }
+)
+
+watch(
+  () => [localPersona.value.nombres, localPersona.value.primer_apellido, isEditing.value],
+  () => {
+    if (!isEditing.value) return
+
+    const generated = buildInstitutionalEmail(localPersona.value.nombres, localPersona.value.primer_apellido)
+    const current = String(localEmpleado.value.correo_institucional || '').trim().toLowerCase()
+
+    if (!generated) return
+
+    if (!current || current === lastGeneratedInstitutionalEmail.value) {
+      localEmpleado.value.correo_institucional = generated
+    }
+
+    lastGeneratedInstitutionalEmail.value = generated
+  },
+  { immediate: true }
 )
 </script>
 

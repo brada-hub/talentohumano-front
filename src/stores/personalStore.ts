@@ -253,7 +253,20 @@ export const usePersonalStore = defineStore('personal', {
         return response.data.data
       } catch (err) {
         console.error('Error fetching legajo', err)
-        return []
+        return {
+          documentos: [],
+          resumen: {
+            total_documentos: 0,
+            generated_signed_count: 0,
+            categorias_activas: 0,
+            required_total: 0,
+            required_completed: 0,
+            required_missing: 0,
+            coverage_percentage: 0,
+            status: 'Crítico',
+          },
+          categorias: [],
+        }
       }
     },
 

@@ -80,10 +80,11 @@
         </q-tab-panel>
 
         <q-tab-panel name="contracts" class="q-pa-none">
-          <PersonalHistoryTab
+          <ContratosManagerTab
             :contratos="employee.contratos || []"
             :empleado-id="employee.id_empleado"
             :empleado-nombre="`${employee.persona.primer_apellido} ${employee.persona.nombres}`"
+            @refresh="loadEmployee"
           />
         </q-tab-panel>
 
@@ -103,7 +104,7 @@ import PersonalInfoTab from '../modules/personal/components/PersonalInfoTab.vue'
 import PersonalCvTab from '../modules/personal/components/PersonalCvTabV2.vue'
 import AcademicoManagerTab from 'src/modules/academico/components/AcademicoManagerTab.vue'
 import BeneficiariosTab from 'src/modules/beneficios/components/BeneficiariosTab.vue'
-import PersonalHistoryTab from '../modules/personal/components/PersonalHistoryTab.vue'
+import ContratosManagerTab from 'src/modules/contratos/components/ContratosManagerTab.vue'
 import PersonalLegajoTab from '../modules/personal/components/PersonalLegajoTab.vue'
 
 const route = useRoute()

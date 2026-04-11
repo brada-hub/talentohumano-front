@@ -7,6 +7,7 @@ export const useSsoStore = defineStore('sso', {
     roles: [] as any[],
     permissions: [] as any[],
     users: [] as any[],
+    personasWithoutUser: [] as any[],
     loading: false,
   }),
 
@@ -80,8 +81,27 @@ export const useSsoStore = defineStore('sso', {
       }
     },
 
-    async assignRolesToUser(userId: number, roleIds: number[]) {
-      await api.post(`/v1/auth/sso/users/${userId}/roles`, { role_ids: roleIds });
+    async updateAccess(userId: number, accessData: any) {
+      await api.post(`/v1/auth/sso/users/${userId}/access`, accessData);
+      await this.fetchUsers();
+    },
+
+    async toggleUserStatus(userId: number) {
+      await api.post(`/v1/auth/sso/users/${userId}/toggle-status`);
+      await this.fetchUsers();
+    },
+
+    async resetUserPassword(userId: number) {
+      await api.post(`/v1/auth/sso/users/${userId}/reset-password`);
+    },
+
+    async fetchPersonasWithoutUser() {
+      const response = await api.get('/v1/auth/sso/personas-sin-usuario');
+      this.personasWithoutUser = response.data.data;
+    },
+
+    async createUser(userData: any) {
+      await api.post('/v1/auth/sso/users', userData);
       await this.fetchUsers();
     }
   }

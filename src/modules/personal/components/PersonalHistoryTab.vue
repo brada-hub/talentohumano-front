@@ -252,6 +252,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const emit = defineEmits(['refresh'])
 const $q = useQuasar()
 
 const selectedContractId = ref<number | null>(null)
@@ -560,7 +561,7 @@ function buildPayload() {
         horarios: splitMultiline(form.horariosText),
         nota_horaria: form.notaHoraria || null,
         salario_numeral: Number(form.salarioNumeral || 0),
-        remuneracion_texto: form.remuneracionTexto || null,
+        remuneracion_detalle: form.remuneracionTexto || null,
         ciudad_firma: form.ciudadFirma || null,
         fecha_firma: form.fechaFirma || null,
       },
@@ -607,6 +608,12 @@ async function downloadPdf() {
     link.click()
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
+    
+    $q.notify({
+      type: 'positive',
+      message: 'Contrato generado y guardado en su Historial y Legajo Digital'
+    })
+    emit('refresh')
   } catch (error: any) {
     $q.notify({
       type: 'negative',

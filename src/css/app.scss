@@ -122,27 +122,27 @@ body {
 }
 
 .sigeth-page {
-  padding: 24px;
+  padding: 16px 20px;
 }
 
 .page-hero {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 24px;
-  padding-bottom: 20px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--border);
 
   &__title {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
     color: var(--color-primary);
   }
 
   &__subtitle {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-secondary);
-    margin-top: 4px;
+    margin-top: 2px;
   }
 }
 
@@ -261,6 +261,7 @@ body {
 // Botones con degradado del portal
 .btn-gradient-portal {
   background: $gradient-portal !important;
+  color: #fff !important;
   border: none !important;
   transition: all 0.3s ease !important;
   box-shadow: 0 4px 15px rgba(106, 55, 163, 0.3) !important;
@@ -316,5 +317,34 @@ body {
     background-size: 40px 40px;
     pointer-events: none;
     z-index: 0;
+  }
+}
+// ═══ COMPACT SaaS DENSITY OVERRIDES ═══
+.text-h4 { font-size: 1.5rem !important; line-height: 2rem !important; }
+.text-h5 { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+.text-subtitle1 { font-size: 0.9rem !important; line-height: 1.25rem !important; }
+.text-overline { font-size: 0.65rem !important; }
+
+// Sidebar compaction
+.q-layout__section--main {
+  .q-item {
+    min-height: 42px !important;
+    padding: 4px 12px !important;
+  }
+}
+
+.q-table th {
+  padding: 12px 16px !important;
+  font-size: 11px !important;
+}
+
+.q-table td {
+  padding: 8px 16px !important;
+  font-size: 13px !important;
+}
+
+.sigeth-table-wrap {
+  .table-toolbar {
+    padding: 12px !important;
   }
 }
