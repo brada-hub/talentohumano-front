@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.DEV ? 'http://localhost:8000/api' : 'https://api.sigeth.xpertiaplus.com/api',
+  baseURL: (import.meta as any).env.VITE_API_BASE || '/api',
   timeout: 10000,
 });
 
@@ -31,7 +31,7 @@ api.interceptors.response.use(
       if (!requestUrl.includes('/portal/')) {
         localStorage.removeItem('sigeth_token');
         localStorage.removeItem('sigeth_user');
-        window.location.href = '#/login'; // Hash router usually
+        window.location.href = '/login';
       }
     }
     return Promise.reject(error);

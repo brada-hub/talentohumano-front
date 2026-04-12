@@ -106,6 +106,7 @@ import AcademicoManagerTab from 'src/modules/academico/components/AcademicoManag
 import BeneficiariosTab from 'src/modules/beneficios/components/BeneficiariosTab.vue'
 import ContratosManagerTab from 'src/modules/contratos/components/ContratosManagerTab.vue'
 import PersonalLegajoTab from '../modules/personal/components/PersonalLegajoTab.vue'
+import { getSigethPublicBaseUrl } from 'shared/config/runtime'
 
 const route = useRoute()
 const personalStore = usePersonalStore()
@@ -117,7 +118,7 @@ const academicLoading = ref(false)
 const tab = ref((route.query.tab as string) || 'info')
 const isGeneratingPdf = ref(false)
 
-const apiBaseUrl = api.defaults.baseURL?.replace(/\/api$/, '') || 'http://localhost:8000'
+const apiBaseUrl = getSigethPublicBaseUrl()
 
 const getAvatarUrl = (persona: any) => {
   return `https://ui-avatars.com/api/?name=${persona.primer_apellido}+${persona.nombres}&background=6A37A3&color=fff&bold=true`

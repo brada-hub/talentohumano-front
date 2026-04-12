@@ -289,6 +289,7 @@ import { computed, onMounted, ref } from 'vue'
 import { api } from 'boot/axios'
 import { usePersonalStore } from 'src/stores/personalStore'
 import { useNotify } from 'src/shared/composables/useNotify'
+import { buildSigethPortalFileUrl } from 'src/shared/config/runtime'
 
 const props = defineProps<{
   idEmpleado: number
@@ -447,16 +448,7 @@ function openDocument(doc: any) {
 }
 
 function resolveDocumentUrl(path?: string | null) {
-  const clean = stripFilePath(path)
-  if (!clean) return ''
-  const base = api.defaults.baseURL?.replace(/\/api$/, '') || 'http://localhost:8000'
-  const encodedPath = clean
-    .split('/')
-    .filter(Boolean)
-    .map((segment) => encodeURIComponent(segment))
-    .join('/')
-
-  return `${String(base).replace(/\/+$/, '')}/api/portal/archivo/${encodedPath}`
+  return buildSigethPortalFileUrl(stripFilePath(path))
 }
 
 function stripFilePath(raw?: string | null) {

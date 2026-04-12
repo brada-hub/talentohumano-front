@@ -24,7 +24,7 @@
       </div>
       <div class="row q-col-gutter-md">
         <div class="col-12 col-sm-6 col-md-4" v-for="sys in (externalSystems as any[])" :key="sys.sistema">
-          <q-card class="app-card cursor-pointer" @click="goToSystem(sys.url)" v-ripple>
+          <q-card class="app-card cursor-pointer" @click="goToSystem(sys.sistema, sys.url)" v-ripple>
             <q-card-section class="row items-center no-wrap">
               <q-avatar size="56px" :color="getSysColor(sys.sistema)" text-color="white" class="shadow-3 q-mr-md text-weight-bolder text-h5">
                 {{ sys.sistema.substring(0, 2).toUpperCase() }}
@@ -200,34 +200,38 @@ const externalSystems = computed(() => {
   return Object.values(metadata).filter((sys: any) => sys.url && sys.sistema.toUpperCase() !== 'SIGETH')
 })
 
-const goToSystem = (url: string) => {
+const goToSystem = (sysName: string, url: string) => {
   if (!url) return;
 
-  // Si es un sistema hermano (SISPO o SIGVA), pasarle el token actual para login automático
   const token = authStore.token;
   const user = authStore.user;
+
+  // En desarrollo, usar las URLs locales del .env en vez de las de la BD (producción)
+  const isSispo = sysName.toUpperCase() === 'SISPO' || url.includes('9001');
+  const isSigva = sysName.toUpperCase() === 'SIGVA' || url.includes('9002');
+  
+  let baseUrl = url;
+  const env = (import.meta as any).env;
+  
+  if (isSispo && env.VITE_SISPO_FRONT_URL) {
+    baseUrl = env.VITE_SISPO_FRONT_URL;
+  } else if (isSigva && env.VITE_SIGVA_FRONT_URL) {
+    baseUrl = env.VITE_SIGVA_FRONT_URL;
+  }
 
   if (token && user) {
     const userStr = btoa(unescape(encodeURIComponent(JSON.stringify(user))));
     const tokenParam = encodeURIComponent(token);
     const userParam = encodeURIComponent(userStr);
-    const isSispo = url.toLowerCase().includes(':9001') || url.toLowerCase().includes('sispo');
-    const isSigva = url.toLowerCase().includes(':9002') || url.toLowerCase().includes('sigva');
     
     let finalUrl = '';
-    const separator = url.includes('?') ? '&' : '?';
 
-    if (isSispo) {
-      finalUrl = `${url}/#/login?token=${tokenParam}&user=${userParam}`;
-    } else if (isSigva) {
-      finalUrl = `${url}/admin/login?token=${tokenParam}&user=${userParam}`;
-    } else {
-      finalUrl = `${url}${separator}token=${tokenParam}&user=${userParam}`;
-    }
+    const separator = baseUrl.includes('?') ? '&' : '?';
+    finalUrl = `${baseUrl}${separator}token=${tokenParam}&user=${userParam}`;
     
-    window.open(finalUrl, '_blank');
+    window.location.href = finalUrl;
   } else {
-    window.open(url, '_blank');
+    window.location.href = baseUrl;
   }
 }
 

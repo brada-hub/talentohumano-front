@@ -451,6 +451,7 @@ import { useQuasar } from 'quasar'
 import { api } from 'boot/axios'
 import { usePersonalStore } from 'src/stores/personalStore'
 import contratosService from 'src/modules/contratos/services/contratos.service'
+import { buildSigethPortalFileUrl } from 'src/shared/config/runtime'
 
 interface Props {
   contratos: any[]
@@ -1084,10 +1085,7 @@ function stripFilePath(raw?: string | null) {
 }
 
 function buildPortalPath(raw?: string | null) {
-  const clean = stripFilePath(raw)
-  if (!clean) return ''
-  const base = api.defaults.baseURL?.replace(/\/api$/, '') || 'http://localhost:8000'
-  return `${String(base).replace(/\/+$/, '')}/api/portal/archivo/${clean}`
+  return buildSigethPortalFileUrl(stripFilePath(raw))
 }
 
 function openVersion(version: any) {

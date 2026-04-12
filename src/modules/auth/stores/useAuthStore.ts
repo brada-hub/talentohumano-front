@@ -1,9 +1,26 @@
 import { defineStore } from 'pinia';
 import api from 'src/shared/api/axios.instance';
 
+const readStoredUser = () => {
+  const rawUser = localStorage.getItem('sigeth_user');
+
+  if (!rawUser) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(rawUser);
+  } catch (error) {
+    console.warn('Invalid sigeth_user in localStorage, clearing corrupted session.', error);
+    localStorage.removeItem('sigeth_user');
+    localStorage.removeItem('sigeth_token');
+    return null;
+  }
+};
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: JSON.parse(localStorage.getItem('sigeth_user') || 'null'),
+    user: readStoredUser(),
     token: localStorage.getItem('sigeth_token') || null,
     loading: false,
   }),

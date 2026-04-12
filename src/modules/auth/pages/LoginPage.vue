@@ -88,12 +88,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useNotify } from 'src/shared/composables/useNotify'
 
+const RETURN_TO_KEY = 'sigeth_sso_return_to'
+
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const { success, error: notifyError } = useNotify()
 
@@ -103,6 +106,19 @@ const loginForm = reactive({
   username: '',
   password: ''
 })
+
+const resolveReturnTo = () => {
+  const queryReturnTo = typeof route.query.returnTo === 'string'
+    ? route.query.returnTo
+    : new URLSearchParams(window.location.search).get('returnTo') || ''
+
+  if (queryReturnTo) {
+    sessionStorage.setItem(RETURN_TO_KEY, queryReturnTo)
+    return queryReturnTo
+  }
+
+  return sessionStorage.getItem(RETURN_TO_KEY) || ''
+}
 
 const onSubmit = async () => {
   if (authStore.loading) return
@@ -119,20 +135,36 @@ const onSubmit = async () => {
 
       success('Bienvenido al sistema SIGETH')
       
-      // Si viene de un sistema externo por SSO
-      if (router.currentRoute.value.query.returnTo) {
-      const returnTo = router.currentRoute.value.query.returnTo as string;
-      const tokenStr = authStore.token;
-      const userStr = btoa(unescape(encodeURIComponent(JSON.stringify(authStore.user))));
-      const separator = returnTo.includes('?') ? '&' : '?';
-      window.location.href = `${returnTo}${separator}token=${encodeURIComponent(tokenStr)}&user=${encodeURIComponent(userStr)}`;
-    } else {
-      router.push('/')
-    }
+      const returnTo = resolveReturnTo()
+      
+      if (returnTo) {
+        console.log('SSO: Redirigiendo de vuelta al sistema de origen...', returnTo);
+        const returnToUrl = returnTo as string;
+        const tokenStr = authStore.token || '';
+        const userStr = btoa(unescape(encodeURIComponent(JSON.stringify(authStore.user))));
+        const separator = returnToUrl.includes('?') ? '&' : '?';
+        sessionStorage.removeItem(RETURN_TO_KEY)
+        
+        // Redirección externa limpia
+        window.location.href = `${returnToUrl}${separator}token=${encodeURIComponent(tokenStr)}&user=${encodeURIComponent(userStr)}`;
+      } else {
+        // Si no hay returnTo, entramos al dashboard de SIGETH
+        sessionStorage.removeItem(RETURN_TO_KEY)
+        router.push('/')
+      }
   } catch (error) {
     notifyError(error as string)
   }
 }
+
+onMounted(() => {
+  if (route.query.force === 'true' || route.query.force) {
+    sessionStorage.removeItem(RETURN_TO_KEY)
+    return
+  }
+
+  resolveReturnTo()
+})
 </script>
 
 <style lang="scss" scoped>

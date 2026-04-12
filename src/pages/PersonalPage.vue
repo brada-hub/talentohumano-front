@@ -333,6 +333,7 @@ import { QTableColumn } from 'quasar'
 import { Loading, useQuasar, copyToClipboard } from 'quasar'
 import RegistroEmpleadoDialog from 'components/RegistroEmpleadoDialog.vue'
 import { api } from 'boot/axios'
+import { getSigethPublicBaseUrl } from 'shared/config/runtime'
 
 // Sub-componentes para el modal
 import PersonalInfoTab from '../modules/personal/components/PersonalInfoTab.vue'
@@ -361,7 +362,7 @@ const quickView = ref({
 })
 const isGeneratingCv = ref(false)
 
-const apiBaseUrl = api.defaults.baseURL?.replace(/\/api$/, '') || 'http://localhost:8000'
+const apiBaseUrl = getSigethPublicBaseUrl()
 
 const columns: QTableColumn[] = [
   { name: 'nombre', label: 'Funcionario', field: 'id_empleado', align: 'left' },

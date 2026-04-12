@@ -43,7 +43,7 @@ export default defineConfig((ctx) => {
         'shared': fileURLToPath(new URL('./src/shared', import.meta.url)),
       },
 
-      vueRouterMode: 'hash', // available values: 'hash', 'history'
+      vueRouterMode: 'history', // available values: 'hash', 'history'
       // vueRouterBase,
       // vueDevtools,
       // vueOptionsAPI: false,
