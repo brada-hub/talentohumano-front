@@ -4,12 +4,18 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - VITE_SIGETH_BACK_URL=${VITE_SIGETH_BACK_URL:-http://localhost:8000}
-        - VITE_SISPO_FRONT_URL=${VITE_SISPO_FRONT_URL:-http://localhost:9001}
-        - VITE_SIGVA_FRONT_URL=${VITE_SIGVA_FRONT_URL:-http://localhost:9002}
-        - VITE_SSO_FRONT_URL=${VITE_SSO_FRONT_URL:-http://localhost:9000}
-        - VITE_SHARED_ASSET_URL=${VITE_SHARED_ASSET_URL:-http://localhost:8000}
+        - VITE_SIGETH_BACK_URL=${VITE_SIGETH_BACK_URL:-https://api.sigeth.unitepc.pro}
+        - VITE_SISPO_FRONT_URL=${VITE_SISPO_FRONT_URL:-https://postulaciones.unitepc.pro}
+        - VITE_SIGVA_FRONT_URL=${VITE_SIGVA_FRONT_URL:-https://sigva.unitepc.pro}
+        - VITE_SSO_FRONT_URL=${VITE_SSO_FRONT_URL:-https://sigeth.unitepc.pro}
+        - VITE_SHARED_ASSET_URL=${VITE_SHARED_ASSET_URL:-https://api.sigeth.unitepc.pro}
     container_name: sigeth-frontend
     restart: unless-stopped
     ports:
-      - "9000:9000"
+      - "${PORT:-9000}:9000"
+    networks:
+      - th-ecosystem
+
+networks:
+  th-ecosystem:
+    external: true
