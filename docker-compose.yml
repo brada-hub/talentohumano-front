@@ -1,0 +1,15 @@
+services:
+  sigeth-front:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - VITE_SIGETH_BACK_URL=${VITE_SIGETH_BACK_URL:-http://localhost:8000}
+        - VITE_SISPO_FRONT_URL=${VITE_SISPO_FRONT_URL:-http://localhost:9001}
+        - VITE_SIGVA_FRONT_URL=${VITE_SIGVA_FRONT_URL:-http://localhost:9002}
+        - VITE_SSO_FRONT_URL=${VITE_SSO_FRONT_URL:-http://localhost:9000}
+        - VITE_SHARED_ASSET_URL=${VITE_SHARED_ASSET_URL:-http://localhost:8000}
+    container_name: sigeth-frontend
+    restart: unless-stopped
+    ports:
+      - "9000:9000"

@@ -322,9 +322,56 @@ const handleSessionLogoutNow = async () => {
 </script>
 
 <style lang="scss">
-// â•â• COLOR VARIABLES SISPO â•â•
-$sispo-primary: #6A37A3; // PÃºrpura UNITEPC
-$sispo-accent: #00A99D;  // Teal / Turquesa de SISPO
+/* DEGRADADOS INSTITUCIONALES SIGETH (SSO STYLE) */
+.bg-unitepc-sso,
+.bg-gradient-portal,
+.btn-gradient-portal {
+  background: linear-gradient(135deg, #4f2789 0%, #00c2cb 100%) !important;
+}
+
+.btn-gradient-portal {
+  transition: opacity 0.2s ease, transform 0.1s ease;
+  &:hover {
+    opacity: 0.9;
+  }
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.bg-unitepc-indigo {
+  background: linear-gradient(135deg, #303f9f 0%, #1a237e 100%) !important;
+}
+
+.bg-unitepc-teal {
+  background: linear-gradient(135deg, #00796b 0%, #004d40 100%) !important;
+}
+
+.bg-unitepc-green {
+  background: linear-gradient(135deg, #388e3c 0%, #1b5e20 100%) !important;
+}
+
+.bg-unitepc-dark {
+  background: linear-gradient(135deg, #455a64 0%, #263238 100%) !important;
+}
+
+.sso-grid {
+  position: relative;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.12;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.2) 2px, transparent 2px), 
+                      linear-gradient(90deg, rgba(255, 255, 255, 0.2) 2px, transparent 2px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+}
+
+// ================= COLOR VARIABLES SISPO =================
+$sispo-primary: #4f2789; // Adaptado al Púrpura de SSO
+$sispo-accent: #00c2cb;  // Adaptado al Teal / Turquesa de SSO
 $sispo-bg: #fdf2ff;      // Fondo lila suave para botones secundarios
 $sispo-grey: #f4f6f8;    // Gris suave para cards sidebar
 
@@ -360,7 +407,7 @@ $sispo-grey: #f4f6f8;    // Gris suave para cards sidebar
 .nav-item-active-teal {
   background: linear-gradient(90deg, $sispo-primary, $sispo-accent) !important;
   color: white !important;
-  box-shadow: 0 4px 15px rgba(106, 55, 163, 0.4);
+  box-shadow: 0 4px 15px rgba(79, 39, 137, 0.3);
   
   .nav-icon { color: white !important; }
 }
