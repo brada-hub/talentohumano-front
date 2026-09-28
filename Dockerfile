@@ -6,12 +6,12 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Argumentos de entorno para Vite/Quasar
-ARG VITE_API_BASE=http://localhost:8000/api
-ARG VITE_SIGETH_BACK_URL=http://localhost:8000
-ARG VITE_SISPO_FRONT_URL=http://localhost:9001
-ARG VITE_SIGVA_FRONT_URL=http://localhost:9002
-ARG VITE_SSO_FRONT_URL=http://localhost:9000
-ARG VITE_SHARED_ASSET_URL=http://localhost:8000
+ARG VITE_API_BASE=https://api.sigeth.unitepc.pro/api
+ARG VITE_SIGETH_BACK_URL=https://api.sigeth.unitepc.pro
+ARG VITE_SISPO_FRONT_URL=https://postulaciones.unitepc.pro
+ARG VITE_SIGVA_FRONT_URL=https://sigva.unitepc.pro
+ARG VITE_SSO_FRONT_URL=https://sigeth.unitepc.pro
+ARG VITE_SHARED_ASSET_URL=https://api.sigeth.unitepc.pro
 
 ENV VITE_API_BASE=$VITE_API_BASE \
     VITE_SIGETH_BACK_URL=$VITE_SIGETH_BACK_URL \
