@@ -197,8 +197,32 @@ const stats = computed(() => personalStore.stats)
 // Extraer sistemas externos asignados al usuario actual
 const externalSystems = computed(() => {
   const metadata = authStore.user?.access_metadata || {}
-  return Object.values(metadata).filter((sys: any) => sys.url && sys.sistema.toUpperCase() !== 'SIGETH')
+  const list = Object.values(metadata).filter((sys: any) => sys.url && sys.sistema.toUpperCase() !== 'SIGETH')
+  
+  if (list.length === 0 && authStore.isAdmin) {
+    const env = (import.meta as any).env
+    return [
+      {
+        sistema: 'SISPO',
+        url: env.VITE_SISPO_FRONT_URL || 'http://localhost:9001',
+        roles: ['Administrador'],
+        permissions: ['dashboard', 'convocatorias', 'postulaciones']
+      },
+      {
+        sistema: 'SIGVA',
+        url: env.VITE_SIGVA_FRONT_URL || 'http://localhost:9002',
+        roles: ['Administrador'],
+        permissions: ['vacaciones_dashboard', 'solicitudes']
+      }
+    ]
+  }
+
+  return list
 })
+
+const safeBase64Encode = (str: string): string => {
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16))))
+}
 
 const goToSystem = (sysName: string, url: string) => {
   if (!url) return;
@@ -206,9 +230,8 @@ const goToSystem = (sysName: string, url: string) => {
   const token = authStore.token;
   const user = authStore.user;
 
-  // En desarrollo, usar las URLs locales del .env en vez de las de la BD (producción)
-  const isSispo = sysName.toUpperCase() === 'SISPO' || url.includes('9001');
-  const isSigva = sysName.toUpperCase() === 'SIGVA' || url.includes('9002');
+  const isSispo = sysName.toUpperCase() === 'SISPO' || url.includes('9001') || url.toLowerCase().includes('sispo') || url.toLowerCase().includes('postulaciones');
+  const isSigva = sysName.toUpperCase() === 'SIGVA' || url.includes('9002') || url.toLowerCase().includes('sigva');
   
   let baseUrl = url;
   const env = (import.meta as any).env;
@@ -219,19 +242,26 @@ const goToSystem = (sysName: string, url: string) => {
     baseUrl = env.VITE_SIGVA_FRONT_URL;
   }
 
+  const cleanBase = baseUrl.replace(/\/+$/, '');
+  let destination = cleanBase;
+
+  if (isSispo) {
+    destination = cleanBase.endsWith('/admin') ? cleanBase : `${cleanBase}/admin`;
+  } else if (isSigva) {
+    destination = cleanBase.endsWith('/admin/dashboard') ? cleanBase : `${cleanBase}/admin/dashboard`;
+  }
+
   if (token && user) {
-    const userStr = btoa(unescape(encodeURIComponent(JSON.stringify(user))));
+    const userStr = safeBase64Encode(JSON.stringify(user));
     const tokenParam = encodeURIComponent(token);
     const userParam = encodeURIComponent(userStr);
     
-    let finalUrl = '';
-
-    const separator = baseUrl.includes('?') ? '&' : '?';
-    finalUrl = `${baseUrl}${separator}token=${tokenParam}&user=${userParam}`;
+    const separator = destination.includes('?') ? '&' : '?';
+    const finalUrl = `${destination}${separator}token=${tokenParam}&user=${userParam}`;
     
     window.location.href = finalUrl;
   } else {
-    window.location.href = baseUrl;
+    window.location.href = destination;
   }
 }
 

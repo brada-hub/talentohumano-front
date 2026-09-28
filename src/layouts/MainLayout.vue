@@ -284,18 +284,24 @@ const pageTitle = computed(() => {
 
 const activeRole = computed(() => {
   const roles = authStore.user?.roles || []
+  const sigethRole = roles.find((r: any) => Number(r?.sistema_id) === 1)
+  if (sigethRole) {
+    return typeof sigethRole === 'string' ? sigethRole : (sigethRole.nombres || 'Usuario')
+  }
   if (roles.length > 0) {
     return typeof roles[0] === 'string' ? roles[0] : (roles[0].nombres || 'Usuario')
   }
   return 'Usuario'
 })
 
-const isAdmin = computed(() => {
-  const role = (activeRole.value || '').toUpperCase()
-  return role === 'ADMIN' || role === 'SISTEMAS' || role === 'ADMINISTRADOR'
-})
+const isAdmin = computed(() => authStore.isAdmin)
 
-const canAccessItem = (item: { requiresAdmin?: boolean; permission?: string }) => {
+const canAccessItem = (item: { path?: string; requiresAdmin?: boolean; permission?: string }) => {
+  // Si el usuario no tiene permisos de SIGETH, solo puede ver Inicio y Mi Perfil
+  if (!authStore.hasSigethAccess && item.path !== '/' && item.path !== '/perfil') {
+    return false
+  }
+
   if (item.requiresAdmin && !isAdmin.value) {
     return false
   }

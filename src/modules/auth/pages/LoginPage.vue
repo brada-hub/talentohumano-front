@@ -120,50 +120,98 @@ const resolveReturnTo = () => {
   return sessionStorage.getItem(RETURN_TO_KEY) || ''
 }
 
+const safeBase64Encode = (str: string): string => {
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16))))
+}
+
 const onSubmit = async () => {
   if (authStore.loading) return
 
-    try {
-      await authStore.login(loginForm)
-      
-      // Si debe cambiar password, lo mandamos directo al perfil con un flag
-      if (authStore.user?.debe_cambiar_password) {
-        success('Debes actualizar tu contraseña por seguridad')
-        router.push('/perfil?forceChange=1')
+  try {
+    await authStore.login(loginForm)
+    const returnTo = resolveReturnTo()
+
+    // Si debe cambiar password y NO viene de un sistema externo, lo mandamos al perfil
+    if (authStore.user?.debe_cambiar_password && !returnTo) {
+      success('Debes actualizar tu contraseña por seguridad')
+      router.push('/perfil?forceChange=1')
+      return
+    }
+
+    success('Bienvenido al sistema SIGETH')
+
+    if (returnTo) {
+      const lowerReturn = String(returnTo).toLowerCase()
+      if ((lowerReturn.includes('9001') || lowerReturn.includes('sispo')) && !authStore.canAccessSystem('sispo')) {
+        sessionStorage.removeItem(RETURN_TO_KEY)
+        notifyError('Acceso denegado: Tu cuenta no tiene permisos para el sistema SISPO')
+        router.push('/')
+        return
+      }
+      if ((lowerReturn.includes('9002') || lowerReturn.includes('sigva')) && !authStore.canAccessSystem('sigva')) {
+        sessionStorage.removeItem(RETURN_TO_KEY)
+        notifyError('Acceso denegado: Tu cuenta no tiene permisos para el sistema SIGVA')
+        router.push('/')
         return
       }
 
-      success('Bienvenido al sistema SIGETH')
-      
-      const returnTo = resolveReturnTo()
-      
-      if (returnTo) {
-        console.log('SSO: Redirigiendo de vuelta al sistema de origen...', returnTo);
-        const returnToUrl = returnTo as string;
-        const tokenStr = authStore.token || '';
-        const userStr = btoa(unescape(encodeURIComponent(JSON.stringify(authStore.user))));
-        const separator = returnToUrl.includes('?') ? '&' : '?';
+      console.log('SSO: Redirigiendo de vuelta al sistema de origen...', returnTo)
+      const returnToUrl = returnTo as string
+      const tokenStr = authStore.token || ''
+      const userStr = safeBase64Encode(JSON.stringify(authStore.user))
+      const separator = returnToUrl.includes('?') ? '&' : '?'
+      sessionStorage.removeItem(RETURN_TO_KEY)
+      window.location.href = `${returnToUrl}${separator}token=${encodeURIComponent(tokenStr)}&user=${encodeURIComponent(userStr)}`
+      return
+    }
+
+    // Si no tiene retorno explícito pero solo tiene acceso a un sistema externo, redirigirlo directamente
+    if (!authStore.hasSigethAccess) {
+      const tokenStr = authStore.token || ''
+      const userStr = safeBase64Encode(JSON.stringify(authStore.user))
+      if (authStore.canAccessSystem('sigva') && !authStore.canAccessSystem('sispo')) {
         sessionStorage.removeItem(RETURN_TO_KEY)
-        
-        // Redirección externa limpia
-        window.location.href = `${returnToUrl}${separator}token=${encodeURIComponent(tokenStr)}&user=${encodeURIComponent(userStr)}`;
-      } else {
-        // Si no hay returnTo, entramos al dashboard de SIGETH
-        sessionStorage.removeItem(RETURN_TO_KEY)
-        router.push('/')
+        window.location.href = `http://localhost:9002/admin/dashboard?token=${encodeURIComponent(tokenStr)}&user=${encodeURIComponent(userStr)}`
+        return
       }
+      if (authStore.canAccessSystem('sispo') && !authStore.canAccessSystem('sigva')) {
+        sessionStorage.removeItem(RETURN_TO_KEY)
+        window.location.href = `http://localhost:9001/admin?token=${encodeURIComponent(tokenStr)}&user=${encodeURIComponent(userStr)}`
+        return
+      }
+    }
+
+    sessionStorage.removeItem(RETURN_TO_KEY)
+    router.push('/')
   } catch (error) {
     notifyError(error as string)
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (route.query.force === 'true' || route.query.force) {
     sessionStorage.removeItem(RETURN_TO_KEY)
     return
   }
 
-  resolveReturnTo()
+  const returnTo = resolveReturnTo()
+
+  if (authStore.isAuthenticated && authStore.token) {
+    if (!authStore.user?.persona) {
+      await authStore.fetchMe()
+    }
+
+    if (returnTo) {
+      console.log('SSO: Usuario ya autenticado, redirigiendo a returnTo...', returnTo)
+      const tokenStr = authStore.token || ''
+      const userStr = safeBase64Encode(JSON.stringify(authStore.user))
+      const separator = returnTo.includes('?') ? '&' : '?'
+      sessionStorage.removeItem(RETURN_TO_KEY)
+      window.location.href = `${returnTo}${separator}token=${encodeURIComponent(tokenStr)}&user=${encodeURIComponent(userStr)}`
+      return
+    }
+    router.push('/')
+  }
 })
 </script>
 

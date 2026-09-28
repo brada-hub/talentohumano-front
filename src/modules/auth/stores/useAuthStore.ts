@@ -36,6 +36,28 @@ export const useAuthStore = defineStore('auth', {
     },
     userCI: (state) => state.user?.persona?.ci || '',
     userSede: (state) => state.user?.sede?.nombre || 'General',
+    isAdmin: (state) => {
+      if (state.user?.is_global_admin) return true;
+      const roles = state.user?.roles || [];
+      return roles.some((r: any) => {
+        const sysId = Number(r?.sistema_id ?? 0);
+        const name = (typeof r === 'string' ? r : (r.nombres || r.name || r.nombre || '')).toUpperCase();
+        return (sysId === 1 || sysId === 0) && ['ADMINISTRADOR', 'ADMIN', 'SUPER ADMIN', 'SUPERADMIN', 'DIRECTOR (ENCARGADO)'].includes(name);
+      });
+    },
+    hasSigethAccess: (state) => {
+      if (state.user?.is_global_admin) return true;
+      const meta = state.user?.access_metadata || {};
+      if (meta['sigeth'] || meta['SIGETH']) return true;
+      return (state.user?.roles || []).some((r: any) => Number(r?.sistema_id) === 1);
+    },
+    canAccessSystem: (state) => (slug: string) => {
+      if (state.user?.is_global_admin) return true;
+      const meta = state.user?.access_metadata || {};
+      const s = slug.toLowerCase();
+      if (s === 'sigeth' && (state.user?.roles || []).some((r: any) => Number(r?.sistema_id) === 1)) return true;
+      return !!(meta[s] || meta[s.toUpperCase()]);
+    },
   },
 
   actions: {

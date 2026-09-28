@@ -143,6 +143,25 @@
               class="management-table no-shadow no-border bg-transparent"
               :loading="ssoStore.loading"
             >
+              <!-- FUNCIONARIO -->
+              <template v-slot:body-cell-funcionario="props">
+                <q-td :props="props">
+                  <div v-if="props.row.persona" class="row items-center no-wrap">
+                    <q-avatar size="32px" class="q-mr-sm shadow-1 bg-indigo-1 text-indigo-9 text-weight-bold">
+                      <img v-if="props.row.persona.foto || props.row.persona.foto_url" :src="props.row.persona.foto_url || props.row.persona.foto" />
+                      <span v-else>{{ (props.row.persona.nombres || 'U').charAt(0) }}</span>
+                    </q-avatar>
+                    <div class="column">
+                      <span class="text-weight-bold text-grey-9">
+                        {{ [props.row.persona.primer_apellido, props.row.persona.segundo_apellido, props.row.persona.nombres].filter(Boolean).join(' ') }}
+                      </span>
+                      <span class="text-caption text-grey-6 font-medium">CI: {{ props.row.persona.ci }}</span>
+                    </div>
+                  </div>
+                  <div v-else class="text-grey-6 italic">Cuenta de sistema directa</div>
+                </q-td>
+              </template>
+
               <!-- ESTATUS -->
               <template v-slot:body-cell-activo="props">
                 <q-td :props="props" class="text-center">
@@ -414,88 +433,129 @@
       </q-card>
     </q-dialog>
 
-    <!-- NEW USER DIALOG -->
+    <!-- NEW USER DIALOG ULTRA-SIMPLIFIED -->
     <q-dialog v-model="newUserDialog.show" persistent>
-      <q-card class="modern-dialog rounded-24" style="width: 500px">
-        <q-card-section class="bg-gradient-portal text-white q-py-md">
-          <div class="text-h6 font-bold">Habilitar Acceso al Sistema</div>
+      <q-card class="modern-dialog rounded-24 shadow-24" style="width: 580px; max-width: 95vw;">
+        <q-card-section class="bg-gradient-portal text-white q-py-lg">
+          <div class="row items-center no-wrap justify-between">
+            <div class="row items-center no-wrap">
+              <q-icon name="person_add" size="md" class="q-mr-md" />
+              <div class="column">
+                <div class="text-h6 font-bold">Crear Nuevo Usuario</div>
+                <div class="text-caption opacity-80">Registro directo con CI como usuario y contraseña</div>
+              </div>
+            </div>
+            <q-btn flat round dense icon="close" v-close-popup class="text-white" />
+          </div>
         </q-card-section>
         
-        <q-card-section class="q-pa-lg">
+        <q-card-section class="q-pa-lg scroll" style="max-height: 75vh">
           <q-form @submit="saveNewUser" class="q-gutter-y-md">
-            <div class="text-caption text-grey-7 q-mb-md">Seleccione un funcionario que aún no tenga cuenta de acceso.</div>
             
-            <q-select
-              v-model="newUserDialog.data.id_persona"
-              :options="ssoStore.personasWithoutUser"
-              option-label="nombres"
-              option-value="id"
-              label="Funcionario / Empleado"
-              outlined
-              emit-value
-              map-options
-              class="modern-input"
-              lazy-rules
-              :rules="[val => !!val || 'Requerido']"
-              @update:model-value="onPersonaForUserSelected"
-            >
-               <template v-slot:option="scope">
-                 <q-item v-bind="scope.itemProps">
-                   <q-item-section>
-                     <q-item-label>{{ scope.opt.primer_apellido }} {{ scope.opt.nombres }}</q-item-label>
-                     <q-item-label caption>CI: {{ scope.opt.ci }}</q-item-label>
-                   </q-item-section>
-                 </q-item>
-               </template>
-            </q-select>
-
-            <q-input
-              v-model="newUserDialog.data.username"
-              label="Nombre de Usuario (Username)"
-              outlined
-              class="modern-input"
-              placeholder="Ej: 13260003"
-              lazy-rules
-              :rules="[val => !!val || 'Requerido']"
-            >
-              <template #append>
-                <q-btn flat dense icon="auto_fix_high" color="primary" @click="suggestUsername" />
-              </template>
-            </q-input>
-
-            <q-input
-              v-model="newUserDialog.data.password"
-              :type="isNewUserPwd ? 'password' : 'text'"
-              label="Contraseña"
-              outlined
-              class="modern-input"
-              lazy-rules
-              :rules="[val => !!val || 'Requerido', val => val.length >= 4 || 'Mín. 4 caracteres']"
-            >
-              <template v-slot:append>
-                <q-icon
-                  :name="isNewUserPwd ? 'visibility_off' : 'visibility'"
-                  class="cursor-pointer"
-                  @click="isNewUserPwd = !isNewUserPwd"
+            <div class="row q-col-gutter-sm">
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model="newUserDialog.data.nombres"
+                  label="Nombres *"
+                  outlined
+                  dense
+                  class="modern-input"
+                  lazy-rules
+                  :rules="[val => !!val && val.trim().length > 0 || 'El nombre es obligatorio']"
                 />
-              </template>
-            </q-input>
-
-            <div class="text-subtitle2 q-mt-md">Roles Iniciales:</div>
-            <div class="row q-gutter-sm">
-                <q-checkbox 
-                  v-for="r in ssoStore.roles" 
-                  :key="r.id_rol"
-                  v-model="newUserDialog.data.role_ids"
-                  :val="r.id_rol"
-                  :label="`${r.sistema?.sistema}: ${r.nombres}`"
-                  class="role-check-mini"
+              </div>
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model="newUserDialog.data.primer_apellido"
+                  label="Primer Apellido *"
+                  outlined
+                  dense
+                  class="modern-input"
+                  lazy-rules
+                  :rules="[val => !!val && val.trim().length > 0 || 'El primer apellido es obligatorio']"
                 />
+              </div>
+            </div>
+
+            <div class="row q-col-gutter-sm">
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model="newUserDialog.data.segundo_apellido"
+                  label="Segundo Apellido"
+                  outlined
+                  dense
+                  class="modern-input"
+                  placeholder="(Opcional)"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model="newUserDialog.data.ci"
+                  label="Cédula de Identidad (CI) *"
+                  outlined
+                  dense
+                  class="modern-input"
+                  placeholder="Ej: 13260003"
+                  lazy-rules
+                  :rules="[val => !!val && val.trim().length > 0 || 'El CI es obligatorio']"
+                />
+              </div>
+            </div>
+
+            <!-- INFO CALLOUT -->
+            <div class="q-pa-sm bg-indigo-1 rounded-12 border-indigo-2 row items-center no-wrap">
+              <q-icon name="vpn_key" color="indigo" size="sm" class="q-mr-sm shrink-0" />
+              <div class="text-caption text-indigo-9 leading-tight">
+                El <strong>Usuario</strong> y la <strong>Contraseña inicial</strong> serán automáticamente el <strong>CI</strong>. El usuario podrá iniciar sesión inmediatamente.
+              </div>
+            </div>
+
+            <!-- ROLES BY SYSTEM -->
+            <div class="config-section q-mt-md">
+              <div class="text-subtitle2 font-bold text-teal-9 q-mb-xs row items-center justify-between">
+                <div class="row items-center">
+                  <q-icon name="admin_panel_settings" class="q-mr-xs" size="sm" /> 
+                  Accesos y Roles (Sistemas)
+                </div>
+                <q-btn 
+                  flat 
+                  dense 
+                  no-caps 
+                  size="xs" 
+                  color="teal" 
+                  icon="done_all" 
+                  label="Seleccionar Administrador en todos" 
+                  @click="selectAllAdminRoles" 
+                />
+              </div>
+
+              <div class="row q-col-gutter-sm">
+                <div v-for="sys in ssoStore.systems" :key="sys.id_sistema" class="col-12 col-sm-4">
+                  <div class="q-pa-sm bg-grey-1 rounded-12 border-grey-2 shadow-xs full-height">
+                    <div class="text-caption font-bold text-grey-8 uppercase q-mb-xs">{{ sys.sistema }}</div>
+                    <div class="column q-gutter-y-xs">
+                      <q-checkbox 
+                        v-for="r in getRolesBySystem(sys.id_sistema)" 
+                        :key="r.id_rol"
+                        v-model="newUserDialog.data.role_ids"
+                        :val="r.id_rol"
+                        :label="r.nombres"
+                        color="teal"
+                        dense
+                        class="text-caption"
+                      />
+                      <div v-if="getRolesBySystem(sys.id_sistema).length === 0" class="text-caption text-grey-5 italic">
+                        Sin roles
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="row justify-end q-gutter-x-md q-mt-lg">
               <q-btn flat label="Cancelar" color="grey-7" v-close-popup class="rounded-12" />
-              <q-btn label="Crear Cuenta" type="submit" class="btn-gradient-portal rounded-12 q-px-xl text-white" :loading="ssoStore.loading" />
+              <q-btn label="Crear Usuario" type="submit" class="btn-gradient-portal rounded-12 q-px-xl text-white shadow-lift" :loading="ssoStore.loading" />
             </div>
           </q-form>
         </q-card-section>
@@ -529,6 +589,7 @@ const roleColumns: any[] = [
 
 const userColumns: any[] = [
   { name: 'activo', label: 'Estatus', align: 'center', field: 'activo' },
+  { name: 'funcionario', label: 'Funcionario / Titular', align: 'left', field: (row: any) => row.persona ? `${row.persona.primer_apellido || ''} ${row.persona.nombres || ''}` : row.username, sortable: true },
   { name: 'username', label: 'Usuario', align: 'left', field: 'username', sortable: true },
   { name: 'sede', label: 'Sede/Alcance', align: 'left', field: 'sede' },
   { name: 'roles', label: 'Accesos Habilitados', align: 'left', field: 'roles' },
@@ -548,7 +609,16 @@ const sedeColumns: any[] = [
 const systemDialog = reactive({ show: false, data: { id_sistema: null, sistema: '', url_sistema: '' } })
 const roleDialog = reactive({ show: false, data: { id_rol: null, nombres: '', sistema_id: null, permission_ids: [] as number[] } })
 const userDialog = reactive({ show: false, data: { id_user: null, username: '', role_ids: [] as number[], id_sede_scope: null, activo: true } })
-const newUserDialog = reactive({ show: false, data: { id_persona: null, username: '', password: '', role_ids: [] as number[] } })
+const newUserDialog = reactive({
+  show: false,
+  data: {
+    nombres: '',
+    primer_apellido: '',
+    segundo_apellido: '',
+    ci: '',
+    role_ids: [] as number[]
+  }
+})
 
 
 onMounted(async () => {
@@ -710,34 +780,45 @@ const getSedeName = (id: number) => {
 }
 
 // User Creation
-const openNewUserDialog = async () => {
-  newUserDialog.data = { id_persona: null, username: '', password: '', role_ids: [] }
-  await ssoStore.fetchPersonasWithoutUser()
+const openNewUserDialog = () => {
+  newUserDialog.data = {
+    nombres: '',
+    primer_apellido: '',
+    segundo_apellido: '',
+    ci: '',
+    role_ids: []
+  }
   newUserDialog.show = true
 }
 
-const onPersonaForUserSelected = (id: string) => {
-  if (!id) return
-  const persona = ssoStore.personasWithoutUser.find(p => p.id === id)
-  if (persona) {
-    newUserDialog.data.username = persona.ci
-    newUserDialog.data.password = persona.ci // Predeterminado CI
-  }
-}
-
-const suggestUsername = () => {
-  onPersonaForUserSelected(newUserDialog.data.id_persona as any)
+const selectAllAdminRoles = () => {
+  const adminRoleIds: number[] = []
+  ssoStore.roles.forEach(r => {
+    const roleName = (r.nombres || r.name || '').toUpperCase()
+    if (roleName.includes('ADMIN')) {
+      adminRoleIds.push(r.id_rol)
+    }
+  })
+  newUserDialog.data.role_ids = Array.from(new Set([...newUserDialog.data.role_ids, ...adminRoleIds]))
 }
 
 const saveNewUser = async () => {
   try {
-    await ssoStore.createUser(newUserDialog.data)
-    $q.notify({ type: 'positive', message: 'Usuario creado y habilitado correctamente' })
+    const payload = {
+      nombres: newUserDialog.data.nombres.trim(),
+      primer_apellido: newUserDialog.data.primer_apellido.trim(),
+      segundo_apellido: newUserDialog.data.segundo_apellido ? newUserDialog.data.segundo_apellido.trim() : null,
+      ci: newUserDialog.data.ci.trim(),
+      role_ids: newUserDialog.data.role_ids,
+    }
+
+    await ssoStore.createUser(payload)
+    $q.notify({ type: 'positive', message: 'Usuario creado y accesos habilitados correctamente' })
     newUserDialog.show = false
   } catch (err: any) {
     $q.notify({ 
       type: 'negative', 
-      message: err.response?.data?.message || 'Error al crear usuario' 
+      message: err.response?.data?.message || err.message || 'Error al crear usuario' 
     })
   }
 }
